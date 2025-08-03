@@ -1,0 +1,22 @@
+.blurred {
+  filter: blur(10px);
+  pointer-events: none;
+}
+.image-card {
+  position: relative;
+}
+.image-card button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.gallery-grid {
+  display: flex;
+  margin-left: -16px; /* gutter size offset */
+  width: auto;
+}
+.gallery-grid_column {
+  padding-left: 16px; /* gutter size */
+  background-clip: padding-box;
+}
