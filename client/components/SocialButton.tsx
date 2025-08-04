@@ -20,12 +20,12 @@ export default function SocialButton({
   };
 
   const handleSocialLogin = () => {
-    const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+    const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
     
     if (type === "google") {
-      window.location.href = `${BACKEND_URL}/api/auth/google`;
+      window.location.href = `${BACKEND_URL}/auth/google`;
     } else if (type === "facebook") {
-      window.location.href = `${BACKEND_URL}/api/auth/facebook`;
+      window.location.href = `${BACKEND_URL}/auth/facebook`;
     }
   };
 
