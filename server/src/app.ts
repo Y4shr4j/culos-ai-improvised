@@ -40,11 +40,8 @@ const whitelist = [
 
 app.use(cors({
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    if (!origin || whitelist.indexOf(origin) !== -1) {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
+    // Allow all origins for now - you can restrict this later
+    callback(null, true)
   },
   credentials: true
 }));
