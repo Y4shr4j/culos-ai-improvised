@@ -24,7 +24,7 @@ interface AdminSidebarProps {
 const navigationItems = [
   {
     title: "API Settings",
-    href: "/admin/apisettings",
+    href: "/admin/api-settings",
     icon: Settings,
   },
   {
@@ -36,11 +36,6 @@ const navigationItems = [
     title: "AI Characters",
     href: "/admin/ai-characters",
     icon: Sparkles,
-  },
-  {
-    title: "AI Configuration",
-    href: "/admin/ai-config",
-    icon: Settings,
   },
   {
     title: "Token Settings",

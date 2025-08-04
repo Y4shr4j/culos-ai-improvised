@@ -14,6 +14,7 @@ import { Category } from '../models/category';
 import { TokenConfig } from '../models/tokenConfig';
 import { AIConfig } from '../models/aiConfig';
 import { ChatCharacterModel } from '../models/chatCharacter';
+import { APISettingsModel } from '../models/apiSettings';
 
 const router = express.Router();
 
@@ -162,11 +163,11 @@ router.post('/categories/:id/items', async (req, res) => {
     console.log('Category updated successfully:', updatedCategory);
     
     res.status(201).json({ category: updatedCategory });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error adding item to category:', error);
-    console.error('Error details:', error.message);
-    console.error('Error stack:', error.stack);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    res.status(500).json({ message: 'Internal server error', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
@@ -200,7 +201,7 @@ router.put('/categories/:categoryId/items/:itemId', async (req, res) => {
     }
     
     res.json({ category: updatedCategory });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error updating item:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
@@ -225,7 +226,7 @@ router.delete('/categories/:categoryId/items/:itemId', async (req, res) => {
     }
     
     res.json({ message: 'Item deleted successfully', category: updatedCategory });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error deleting item:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
@@ -441,6 +442,116 @@ router.get('/character-categories', async (req, res) => {
     res.json({ categories });
   } catch (error) {
     console.error('Error fetching character categories:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// API Settings Routes
+router.get('/api-settings', async (req, res) => {
+  try {
+    let settings = await APISettingsModel.findOne();
+    
+    if (!settings) {
+      // Create default settings if none exist
+      settings = new APISettingsModel({
+        updatedBy: {
+          name: 'System',
+          email: 'system@culosai.com'
+        }
+      });
+      await settings.save();
+    }
+    
+    // Mask sensitive data for security
+    const maskedSettings = {
+      aiProvider: settings.aiProvider,
+      geminiApiKey: settings.geminiApiKey ? '***' + settings.geminiApiKey.slice(-4) : '',
+      veniceApiKey: settings.veniceApiKey ? '***' + settings.veniceApiKey.slice(-4) : '',
+      stabilityApiKey: settings.stabilityApiKey ? '***' + settings.stabilityApiKey.slice(-4) : '',
+      googleClientId: settings.googleClientId ? '***' + settings.googleClientId.slice(-4) : '',
+      googleClientSecret: settings.googleClientSecret ? '***' + settings.googleClientSecret.slice(-4) : '',
+      facebookAppId: settings.facebookAppId ? '***' + settings.facebookAppId.slice(-4) : '',
+      facebookAppSecret: settings.facebookAppSecret ? '***' + settings.facebookAppSecret.slice(-4) : '',
+      paypalClientId: settings.paypalClientId ? '***' + settings.paypalClientId.slice(-4) : '',
+      paypalClientSecret: settings.paypalClientSecret ? '***' + settings.paypalClientSecret.slice(-4) : '',
+      stripeSecretKey: settings.stripeSecretKey ? '***' + settings.stripeSecretKey.slice(-4) : '',
+      stripePublishableKey: settings.stripePublishableKey ? '***' + settings.stripePublishableKey.slice(-4) : '',
+      mongodbUri: settings.mongodbUri ? '***' + settings.mongodbUri.slice(-4) : '',
+      jwtSecret: settings.jwtSecret ? '***' + settings.jwtSecret.slice(-4) : '',
+      lastUpdated: settings.lastUpdated,
+      updatedBy: settings.updatedBy
+    };
+    
+    res.json({ settings: maskedSettings });
+  } catch (error) {
+    console.error('Error fetching API settings:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.post('/api-settings', async (req, res) => {
+  try {
+    const {
+      aiProvider,
+      geminiApiKey,
+      veniceApiKey,
+      stabilityApiKey,
+      googleClientId,
+      googleClientSecret,
+      facebookAppId,
+      facebookAppSecret,
+      paypalClientId,
+      paypalClientSecret,
+      stripeSecretKey,
+      stripePublishableKey,
+      mongodbUri,
+      jwtSecret
+    } = req.body;
+    
+    const user = req.user as any;
+    
+    let settings = await APISettingsModel.findOne();
+    
+    if (!settings) {
+      settings = new APISettingsModel({
+        updatedBy: {
+          name: user?.name || 'Admin',
+          email: user?.email || 'admin@culosai.com'
+        }
+      });
+    }
+    
+    // Update only provided fields (don't overwrite with empty strings)
+    if (aiProvider !== undefined) settings.aiProvider = aiProvider;
+    if (geminiApiKey !== undefined && geminiApiKey !== '') settings.geminiApiKey = geminiApiKey;
+    if (veniceApiKey !== undefined && veniceApiKey !== '') settings.veniceApiKey = veniceApiKey;
+    if (stabilityApiKey !== undefined && stabilityApiKey !== '') settings.stabilityApiKey = stabilityApiKey;
+    if (googleClientId !== undefined && googleClientId !== '') settings.googleClientId = googleClientId;
+    if (googleClientSecret !== undefined && googleClientSecret !== '') settings.googleClientSecret = googleClientSecret;
+    if (facebookAppId !== undefined && facebookAppId !== '') settings.facebookAppId = facebookAppId;
+    if (facebookAppSecret !== undefined && facebookAppSecret !== '') settings.facebookAppSecret = facebookAppSecret;
+    if (paypalClientId !== undefined && paypalClientId !== '') settings.paypalClientId = paypalClientId;
+    if (paypalClientSecret !== undefined && paypalClientSecret !== '') settings.paypalClientSecret = paypalClientSecret;
+    if (stripeSecretKey !== undefined && stripeSecretKey !== '') settings.stripeSecretKey = stripeSecretKey;
+    if (stripePublishableKey !== undefined && stripePublishableKey !== '') settings.stripePublishableKey = stripePublishableKey;
+    if (mongodbUri !== undefined && mongodbUri !== '') settings.mongodbUri = mongodbUri;
+    if (jwtSecret !== undefined && jwtSecret !== '') settings.jwtSecret = jwtSecret;
+    
+    settings.lastUpdated = new Date();
+    settings.updatedBy = {
+      name: user?.name || 'Admin',
+      email: user?.email || 'admin@culosai.com'
+    };
+    
+    await settings.save();
+    
+    res.json({ 
+      message: 'API settings updated successfully',
+      lastUpdated: settings.lastUpdated,
+      updatedBy: settings.updatedBy
+    });
+  } catch (error) {
+    console.error('Error updating API settings:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

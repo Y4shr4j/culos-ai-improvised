@@ -79,7 +79,7 @@ export async function generateImage(prompt: string): Promise<string> {
     });
 
     return response.text || "";
-  } catch (error) {
+    } catch (error) {
     console.error("Error generating image:", error);
     return "";
   }

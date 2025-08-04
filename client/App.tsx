@@ -82,7 +82,7 @@ const App = () => {
                     <AdminAIConfig />
                   </AdminRoute>
                 } />
-                <Route path="/admin/apisettings" element={
+                <Route path="/admin/api-settings" element={
                   <AdminRoute>
                     <AdminApiSettings />
                   </AdminRoute>

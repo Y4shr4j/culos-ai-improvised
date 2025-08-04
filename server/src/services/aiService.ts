@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import axios from "axios";
 import type { Character, Message } from "./chatStorage";
-import { AIConfig } from "../models/aiConfig";
+import { APISettingsModel } from "../models/apiSettings";
 
 // Initialize Gemini AI
 const geminiAI = new GoogleGenAI({ 
@@ -16,16 +16,18 @@ export async function generateChatResponse(
   conversationHistory: Message[]
 ): Promise<string> {
   try {
-    // Get current AI configuration
-    const aiConfig = await AIConfig.findOne({}) || await AIConfig.create({
-      provider: 'gemini',
-      geminiApiKey: process.env.GEMINI_API_KEY || "",
-      veniceApiKey: process.env.VENICE_API_KEY || ""
+    // Get current API settings
+    const apiSettings = await APISettingsModel.findOne() || await APISettingsModel.create({
+      aiProvider: 'gemini',
+      updatedBy: {
+        name: 'System',
+        email: 'system@culosai.com'
+      }
     });
 
     console.log('Generating chat response for character:', character.name);
     console.log('User message:', userMessage);
-    console.log('Using AI provider:', aiConfig.provider);
+    console.log('Using AI provider:', apiSettings.aiProvider);
     
     // Build conversation context from history
     const contextMessages = conversationHistory
@@ -54,7 +56,7 @@ IMPORTANT: Stay in character at all times. Never break role or mention that you 
 
     let aiResponse: string;
 
-    if (aiConfig.provider === 'venice') {
+    if (apiSettings.aiProvider === 'venice') {
       // Use Venice API
       console.log('Using Venice API...');
       const response = await axios.post(
@@ -76,14 +78,14 @@ IMPORTANT: Stay in character at all times. Never break role or mention that you 
         },
         {
           headers: {
-            "Authorization": `Bearer ${aiConfig.veniceApiKey}`,
+            "Authorization": `Bearer ${apiSettings.veniceApiKey}`,
             "Content-Type": "application/json"
           }
         }
       );
 
       console.log('Venice API response received');
-      aiResponse = response.data.choices?.[0]?.message?.content;
+      aiResponse = response.data.choices?.[0]?.message?.content || '';
     } else {
       // Use Gemini API
       console.log('Using Gemini API...');
@@ -93,13 +95,13 @@ IMPORTANT: Stay in character at all times. Never break role or mention that you 
       });
 
       console.log('Gemini API response received');
-      aiResponse = response.text;
+      aiResponse = response.text || '';
     }
 
     console.log('Response text length:', aiResponse?.length || 0);
 
     if (!aiResponse || aiResponse.trim().length === 0) {
-      throw new Error(`Empty response from ${aiConfig.provider} API`);
+      throw new Error(`Empty response from ${apiSettings.aiProvider} API`);
     }
 
     return aiResponse.trim();
@@ -123,14 +125,16 @@ IMPORTANT: Stay in character at all times. Never break role or mention that you 
 // Image generation function
 export async function generateImage(prompt: string): Promise<string> {
   try {
-    // Get current AI configuration
-    const aiConfig = await AIConfig.findOne({}) || await AIConfig.create({
-      provider: 'gemini',
-      geminiApiKey: process.env.GEMINI_API_KEY || "",
-      veniceApiKey: process.env.VENICE_API_KEY || ""
+    // Get current API settings
+    const apiSettings = await APISettingsModel.findOne() || await APISettingsModel.create({
+      aiProvider: 'gemini',
+      updatedBy: {
+        name: 'System',
+        email: 'system@culosai.com'
+      }
     });
 
-    if (aiConfig.provider === 'venice') {
+    if (apiSettings.aiProvider === 'venice') {
       // Use Venice API for image generation
       const response = await axios.post(
         `${VENICE_API_BASE_URL}/v1/images/generations`,
@@ -142,7 +146,7 @@ export async function generateImage(prompt: string): Promise<string> {
         },
         {
           headers: {
-            "Authorization": `Bearer ${aiConfig.veniceApiKey}`,
+            "Authorization": `Bearer ${apiSettings.veniceApiKey}`,
             "Content-Type": "application/json"
           }
         }
