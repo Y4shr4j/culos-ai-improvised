@@ -1,8 +1,19 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 // Create axios instance with default config
+const getBaseURL = () => {
+  const envURL = import.meta.env.VITE_API_BASE_URL;
+  if (!envURL) return 'http://localhost:5000/api';
+  
+  // If the URL already ends with /api, use it as is
+  if (envURL.endsWith('/api')) return envURL;
+  
+  // If it doesn't end with /api, add it
+  return `${envURL}/api`;
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+  baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -41,8 +52,9 @@ api.interceptors.response.use(
       
       try {
         // Try to refresh the token
+        const refreshURL = getBaseURL();
         const response = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/auth/refresh-token`,
+          `${refreshURL}/auth/refresh-token`,
           {},
           { withCredentials: true }
         );
