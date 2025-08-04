@@ -1,5 +1,14 @@
 # 🚀 CulosAI Deployment Guide
 
+## **Project Structure**
+```
+culosai-main/
+├── / (Frontend - React/Vite)
+├── /server (Backend - Node.js/Express)
+├── /shared (Shared types)
+└── /dist (Build output)
+```
+
 ## **Quick Start - Railway (Recommended)**
 
 ### **1. Backend Deployment (Railway)**
@@ -7,7 +16,8 @@
 1. **Sign up for Railway**: https://railway.app
 2. **Connect your GitHub repository**
 3. **Create a new project** and select your repository
-4. **Set environment variables**:
+4. **Set the source directory** to `server`
+5. **Set environment variables**:
    ```
    MONGODB_URI=your_mongodb_connection_string
    JWT_SECRET=your_jwt_secret
@@ -25,14 +35,14 @@
    NODE_ENV=production
    PORT=5000
    ```
-5. **Deploy**: Railway will automatically deploy your backend
-6. **Get your backend URL**: Copy the generated URL (e.g., `https://culosai-backend.railway.app`)
+6. **Deploy**: Railway will automatically deploy your backend
+7. **Get your backend URL**: Copy the generated URL (e.g., `https://culosai-backend.railway.app`)
 
 ### **2. Frontend Deployment (Vercel)**
 
 1. **Sign up for Vercel**: https://vercel.com
 2. **Connect your GitHub repository**
-3. **Import your project** and select the `client` folder
+3. **Import your project** and select the root directory (not client folder)
 4. **Set environment variables**:
    ```
    VITE_API_BASE_URL=https://your-backend-url.railway.app
@@ -49,25 +59,27 @@
 1. Sign up at https://render.com
 2. Create a new Web Service
 3. Connect your GitHub repository
-4. Set build command: `npm install && npm run build`
-5. Set start command: `npm start`
-6. Add environment variables
-7. Deploy
+4. Set **Root Directory** to `server`
+5. Set build command: `npm install && npm run build`
+6. Set start command: `npm start`
+7. Add environment variables
+8. Deploy
 
 #### **Frontend on Render**
 1. Create a new Static Site
 2. Connect your GitHub repository
-3. Set build command: `npm install && npm run build`
-4. Set publish directory: `dist`
-5. Add environment variables
-6. Deploy
+3. Set **Root Directory** to `/` (root)
+4. Set build command: `npm install && npm run build`
+5. Set publish directory: `dist`
+6. Add environment variables
+7. Deploy
 
 ### **Option 2: DigitalOcean App Platform**
 
 1. Sign up at https://digitalocean.com
 2. Create a new App
 3. Connect your GitHub repository
-4. Configure build settings
+4. Configure build settings for both frontend and backend
 5. Set environment variables
 6. Deploy
 
@@ -78,13 +90,13 @@
 2. Create a new Heroku app
 3. Set buildpacks
 4. Configure environment variables
-5. Deploy
+5. Deploy from `server` directory
 
 ## **Environment Variables Setup**
 
 ### **Required Environment Variables**
 
-#### **Backend (.env)**
+#### **Backend (.env in server folder)**
 ```env
 # Database
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/culosai
@@ -116,7 +128,7 @@ CLIENT_URL=https://your-frontend-url.com
 CORS_ORIGIN=https://your-frontend-url.com
 ```
 
-#### **Frontend (.env)**
+#### **Frontend (.env in root directory)**
 ```env
 VITE_API_BASE_URL=https://your-backend-url.com
 VITE_PAYPAL_CLIENT_ID=your_paypal_client_id

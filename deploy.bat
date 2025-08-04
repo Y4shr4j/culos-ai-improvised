@@ -55,10 +55,8 @@ cd ..
 
 REM Build frontend
 echo Building frontend...
-cd client
 call npm install
 call npm run build
-cd ..
 
 echo ✅ Build completed successfully
 
@@ -77,9 +75,10 @@ echo Next steps:
 echo 1. Go to https://railway.app and sign up
 echo 2. Connect your GitHub repository
 echo 3. Create a new project and select your repository
-echo 4. Set up environment variables (see DEPLOYMENT.md)
-echo 5. Deploy your backend
-echo 6. Go to https://vercel.com and deploy your frontend
+echo 4. Set Source Directory to 'server'
+echo 5. Set up environment variables (see ENV_SETUP.md)
+echo 6. Deploy your backend
+echo 7. Go to https://vercel.com and deploy your frontend (select root directory)
 echo.
 echo For detailed instructions, see DEPLOYMENT.md
 pause 

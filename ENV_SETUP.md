@@ -1,5 +1,13 @@
 # 🔧 Environment Variables Setup
 
+## **Project Structure**
+```
+culosai-main/
+├── / (Frontend - React/Vite)
+├── /server (Backend - Node.js/Express)
+└── /shared (Shared types)
+```
+
 ## **Quick Setup Guide**
 
 ### **1. Backend Environment Variables**
@@ -39,7 +47,7 @@ CORS_ORIGIN=https://your-frontend-url.com
 
 ### **2. Frontend Environment Variables**
 
-Create a `.env` file in the `client` folder with these variables:
+Create a `.env` file in the **root directory** (main folder) with these variables:
 
 ```env
 VITE_API_BASE_URL=https://your-backend-url.com
@@ -84,11 +92,12 @@ Generate a random string (at least 32 characters):
 ### **Railway (Backend)**
 1. Go to https://railway.app
 2. Create a new project
-3. Add all environment variables from the backend section above
+3. Set **Source Directory** to `server`
+4. Add all environment variables from the backend section above
 
 ### **Vercel (Frontend)**
 1. Go to https://vercel.com
-2. Import your project
+2. Import your project (select root directory)
 3. Add environment variables from the frontend section above
 
 ## **Security Notes**
@@ -101,8 +110,8 @@ Generate a random string (at least 32 characters):
 
 ## **Testing Locally**
 
-1. Create `.env` files in both `client` and `server` folders
-2. Run `npm install` in both folders
+1. Create `.env` files in both root and `server` folders
+2. Run `npm install` in both root and `server` folders
 3. Start backend: `cd server && npm run dev`
-4. Start frontend: `cd client && npm run dev`
+4. Start frontend: `npm run dev` (from root directory)
 5. Test all functionality before deploying 
