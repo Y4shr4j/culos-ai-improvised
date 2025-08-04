@@ -32,8 +32,9 @@ culosai-main/
    PAYPAL_CLIENT_SECRET=your_paypal_client_secret
    STRIPE_SECRET_KEY=your_stripe_secret_key
    STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
-   NODE_ENV=production
-   PORT=5000
+       NODE_ENV=production
+    PORT=5000
+    FRONTEND_URL=https://your-frontend-url.com
    ```
 6. **Deploy**: Railway will automatically deploy your backend
 7. **Get your backend URL**: Copy the generated URL (e.g., `https://culosai-backend.railway.app`)

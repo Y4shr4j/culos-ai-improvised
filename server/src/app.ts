@@ -31,7 +31,12 @@ dotenv.config();
 // Init app
 const app = express();
 
-const whitelist = ["http://localhost:8080", "http://localhost:8081"];
+const whitelist = [
+  "http://localhost:8080", 
+  "http://localhost:8081",
+  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL
+].filter(Boolean);
 
 app.use(cors({
   origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {

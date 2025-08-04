@@ -41,6 +41,7 @@ STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 # Server Configuration
 PORT=5000
 NODE_ENV=production
+FRONTEND_URL=https://your-frontend-url.com
 CLIENT_URL=https://your-frontend-url.com
 CORS_ORIGIN=https://your-frontend-url.com
 ```
