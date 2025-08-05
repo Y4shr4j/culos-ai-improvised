@@ -69,81 +69,109 @@ const findOrCreateUser = async (profile: GoogleProfile | FacebookProfile, provid
 };
 
 // Configure Google OAuth2.0 only if environment variables are set
-console.log('Checking Google OAuth config:', {
-  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET',
-  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT SET'
-});
+console.log('🔧 Checking Google OAuth configuration...');
+console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? '✅ SET' : '❌ NOT SET');
+console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? '✅ SET' : '❌ NOT SET');
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   // Determine the correct callback URL based on environment
   const getCallbackURL = () => {
+    // If OAUTH_CALLBACK_URL is explicitly set, use it
     if (process.env.OAUTH_CALLBACK_URL) {
+      console.log('Using explicit OAUTH_CALLBACK_URL:', process.env.OAUTH_CALLBACK_URL);
       return process.env.OAUTH_CALLBACK_URL;
     }
+    
     // For production, use the Railway URL
     if (process.env.NODE_ENV === 'production') {
-      return `https://culosai-production.up.railway.app/api/auth/google/callback`;
+      const productionUrl = `https://culosai-production.up.railway.app/auth/google/callback`;
+      console.log('Using production callback URL:', productionUrl);
+      return productionUrl;
     }
+    
     // For development, use localhost
-    return "http://localhost:5000/api/auth/google/callback";
+    const devUrl = "http://localhost:5000/auth/google/callback";
+    console.log('Using development callback URL:', devUrl);
+    return devUrl;
   };
+
+  const callbackURL = getCallbackURL();
+  console.log('Final Google callback URL:', callbackURL);
 
   passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: getCallbackURL(),
+      callbackURL: callbackURL,
       scope: ['profile', 'email'],
       passReqToCallback: true
     },
     async (req: Request, accessToken: string, refreshToken: string, profile: GoogleProfile, done: VerifyCallback) => {
       try {
+        console.log('🔍 Google OAuth callback received for user:', profile.displayName);
         const user = await findOrCreateUser(profile, 'google');
+        console.log('✅ User processed successfully:', user.email);
         return done(null, user);
       } catch (error) {
+        console.error('❌ Error in Google OAuth callback:', error);
         return done(error as Error);
       }
     }
   ));
   console.log('✅ Google OAuth strategy configured successfully');
 } else {
-  console.warn('Google OAuth not configured: Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET environment variables');
+  console.warn('⚠️ Google OAuth not configured: Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET environment variables');
+  console.warn('To enable Google OAuth, please set these environment variables:');
+  console.warn('GOOGLE_CLIENT_ID=your-google-client-id');
+  console.warn('GOOGLE_CLIENT_SECRET=your-google-client-secret');
 }
 
 // Configure Facebook Strategy only if environment variables are set
+console.log('🔧 Checking Facebook OAuth configuration...');
+console.log('FACEBOOK_APP_ID:', process.env.FACEBOOK_APP_ID ? '✅ SET' : '❌ NOT SET');
+console.log('FACEBOOK_APP_SECRET:', process.env.FACEBOOK_APP_SECRET ? '✅ SET' : '❌ NOT SET');
+
 if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
-  console.log('Facebook OAuth config:', {
-    FACEBOOK_APP_ID: process.env.FACEBOOK_APP_ID ? 'SET' : 'NOT SET',
-    FACEBOOK_APP_SECRET: process.env.FACEBOOK_APP_SECRET ? 'SET' : 'NOT SET'
-  });
-  console.log('Facebook App ID:', process.env.FACEBOOK_APP_ID);
-  console.log('Facebook App Secret length:', process.env.FACEBOOK_APP_SECRET?.length || 0);
-  
   // Determine the correct callback URL for Facebook
   const getFacebookCallbackURL = () => {
+    // If OAUTH_CALLBACK_URL is explicitly set, use it
     if (process.env.OAUTH_CALLBACK_URL) {
-      return process.env.OAUTH_CALLBACK_URL.replace('/google/callback', '/facebook/callback');
+      const facebookUrl = process.env.OAUTH_CALLBACK_URL.replace('/google/callback', '/facebook/callback');
+      console.log('Using explicit Facebook callback URL:', facebookUrl);
+      return facebookUrl;
     }
+    
     // For production, use the Railway URL
     if (process.env.NODE_ENV === 'production') {
-      return `https://culosai-production.up.railway.app/api/auth/facebook/callback`;
+      const productionUrl = `https://culosai-production.up.railway.app/auth/facebook/callback`;
+      console.log('Using production Facebook callback URL:', productionUrl);
+      return productionUrl;
     }
+    
     // For development, use localhost
-    return "http://localhost:5000/api/auth/facebook/callback";
+    const devUrl = "http://localhost:5000/auth/facebook/callback";
+    console.log('Using development Facebook callback URL:', devUrl);
+    return devUrl;
   };
+
+  const facebookCallbackURL = getFacebookCallbackURL();
+  console.log('Final Facebook callback URL:', facebookCallbackURL);
 
   const facebookStrategy = new FacebookStrategy(
     {
       clientID: process.env.FACEBOOK_APP_ID,
       clientSecret: process.env.FACEBOOK_APP_SECRET,
-      callbackURL: getFacebookCallbackURL(),
+      callbackURL: facebookCallbackURL,
       profileFields: ['id', 'emails', 'name', 'displayName', 'photos'],
       passReqToCallback: true
     },
     async (req: Request, accessToken: string, refreshToken: string, profile: FacebookProfile, done: VerifyCallback) => {
       try {
+        console.log('🔍 Facebook OAuth callback received for user:', profile.displayName);
         const user = await findOrCreateUser(profile, 'facebook');
+        console.log('✅ User processed successfully:', user.email);
         return done(null, user);
       } catch (error) {
+        console.error('❌ Error in Facebook OAuth callback:', error);
         return done(error as Error);
       }
     }
@@ -152,7 +180,10 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
   passport.use(facebookStrategy);
   console.log('✅ Facebook OAuth strategy configured successfully');
 } else {
-  console.warn('Facebook OAuth not configured: Missing FACEBOOK_APP_ID or FACEBOOK_APP_SECRET environment variables');
+  console.warn('⚠️ Facebook OAuth not configured: Missing FACEBOOK_APP_ID or FACEBOOK_APP_SECRET environment variables');
+  console.warn('To enable Facebook OAuth, please set these environment variables:');
+  console.warn('FACEBOOK_APP_ID=your-facebook-app-id');
+  console.warn('FACEBOOK_APP_SECRET=your-facebook-app-secret');
 }
 
 // Serialize user into the sessions

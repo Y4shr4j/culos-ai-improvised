@@ -16,55 +16,67 @@ router.post('/register', register);
 
 // Social authentication routes - only register if strategies are available
 if (isStrategyAvailable('google')) {
-router.get('/google', passport.authenticate('google', { 
-  scope: ['profile', 'email'] 
-}));
+  console.log('✅ Google OAuth strategy is available');
+  router.get('/google', passport.authenticate('google', { 
+    scope: ['profile', 'email'] 
+  }));
 
-router.get('/google/callback', 
-  passport.authenticate('google', { 
-    failureRedirect: '/login',
-    session: false 
-  }), 
-  socialAuthCallback
-);
+  router.get('/google/callback', 
+    passport.authenticate('google', { 
+      failureRedirect: '/login',
+      session: false 
+    }), 
+    socialAuthCallback
+  );
 } else {
+  console.log('❌ Google OAuth strategy is not available');
   // Fallback route for when Google OAuth is not configured
   router.get('/google', (req, res) => {
+    console.log('🔍 Google OAuth route hit but not configured');
     res.status(400).json({ 
-      message: 'Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.' 
+      message: 'Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.',
+      error: 'OAUTH_NOT_CONFIGURED'
     });
   });
   
   router.get('/google/callback', (req, res) => {
+    console.log('🔍 Google OAuth callback route hit but not configured');
     res.status(400).json({ 
-      message: 'Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.' 
+      message: 'Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.',
+      error: 'OAUTH_NOT_CONFIGURED'
     });
   });
 }
 
 if (isStrategyAvailable('facebook')) {
-router.get('/facebook', passport.authenticate('facebook', { 
-  scope: ['public_profile'] 
-}));
+  console.log('✅ Facebook OAuth strategy is available');
+  router.get('/facebook', passport.authenticate('facebook', { 
+    scope: ['public_profile'] 
+  }));
 
-router.get('/facebook/callback',
-  passport.authenticate('facebook', { 
-    failureRedirect: '/login',
-    session: false 
-  }),
-  socialAuthCallback
-);
+  router.get('/facebook/callback',
+    passport.authenticate('facebook', { 
+      failureRedirect: '/login',
+      session: false 
+    }),
+    socialAuthCallback
+  );
 } else {
+  console.log('❌ Facebook OAuth strategy is not available');
   // Fallback route for when Facebook OAuth is not configured
   router.get('/facebook', (req, res) => {
+    console.log('🔍 Facebook OAuth route hit but not configured');
     res.status(400).json({ 
-      message: 'Facebook OAuth is not configured. Please set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET environment variables.' 
+      message: 'Facebook OAuth is not configured. Please set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET environment variables.',
+      error: 'OAUTH_NOT_CONFIGURED'
     });
   });
   
   router.get('/facebook/callback', (req, res) => {
+    console.log('🔍 Facebook OAuth callback route hit but not configured');
     res.status(400).json({ 
-      message: 'Facebook OAuth is not configured. Please set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET environment variables.' 
+      message: 'Facebook OAuth is not configured. Please set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET environment variables.',
+      error: 'OAUTH_NOT_CONFIGURED'
     });
   });
 }

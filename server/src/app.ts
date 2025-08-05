@@ -104,60 +104,14 @@ setTimeout(() => {
   initializeAIConfig();
 }, 1000);
 
-// OAuth routes MUST be defined BEFORE API routes to avoid conflicts
-console.log('🔧 Registering OAuth routes...');
+// OAuth routes are handled in auth.routes.ts
+console.log('🔧 OAuth routes will be handled by auth.routes.ts');
 
-// OAuth callback routes are handled in auth.routes.ts
-// But we also need routes without /api prefix for Google OAuth redirects
-app.get("/auth/google/callback", (req, res, next) => {
-  console.log('🔍 OAuth Google callback route hit:', req.url);
-  passport.authenticate('google', { 
-    failureRedirect: '/login',
-    session: false 
-  })(req, res, next);
-}, async (req, res) => {
-  // Import the socialAuthCallback function
-  const { socialAuthCallback } = await import('./controllers/auth.controller.js');
-  socialAuthCallback(req, res);
-});
-
-app.get("/auth/facebook/callback", (req, res, next) => {
-  console.log('🔍 OAuth Facebook callback route hit:', req.url);
-  passport.authenticate('facebook', { 
-    failureRedirect: '/login',
-    session: false 
-  })(req, res, next);
-}, async (req, res) => {
-  // Import the socialAuthCallback function
-  const { socialAuthCallback } = await import('./controllers/auth.controller.js');
-  socialAuthCallback(req, res);
-});
-
-// OAuth initiation routes without /api prefix
-app.get("/auth/google", (req, res, next) => {
-  console.log('🔍 OAuth Google route hit:', req.url);
-  passport.authenticate('google', { 
-    scope: ['profile', 'email'] 
-  })(req, res, next);
-});
-
-app.get("/auth/facebook", (req, res, next) => {
-  console.log('🔍 OAuth Facebook route hit:', req.url);
-  passport.authenticate('facebook', { 
-    scope: ['public_profile'] 
-  })(req, res, next);
-});
-
-// Test route for OAuth debugging
-app.get("/auth/test", (_req: Request, res: Response) => {
-  console.log('🔍 OAuth test route hit');
-  res.json({ message: "OAuth routes are working!", timestamp: new Date().toISOString() });
-});
-
-console.log('✅ OAuth routes registered successfully');
-
-// Use auth routes
+// Use auth routes with /api prefix
 app.use("/api/auth", authRoutes);
+
+// Also mount auth routes without /api prefix for direct OAuth redirects
+app.use("/auth", authRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/payment', paymentRoutes);
 
@@ -556,12 +510,36 @@ app.use('*', (req: Request, res: Response) => {
 
 // Start server after DB connection
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log('📋 Available routes:');
-  console.log('  - /auth/test');
-  console.log('  - /auth/google');
-  console.log('  - /auth/google/callback');
-  console.log('  - /auth/facebook');
-  console.log('  - /auth/facebook/callback');
-});
+
+// Function to start server with retry logic
+const startServer = (retryCount = 0) => {
+  const currentPort = typeof PORT === 'string' ? parseInt(PORT) + retryCount : PORT + retryCount;
+  const server = app.listen(currentPort, () => {
+    console.log(`🚀 Server running on port ${currentPort}`);
+    console.log('📋 Available routes:');
+    console.log('  - /auth/test');
+    console.log('  - /auth/google');
+    console.log('  - /auth/google/callback');
+    console.log('  - /auth/facebook');
+    console.log('  - /auth/facebook/callback');
+    console.log('✅ OAuth is properly configured and ready!');
+  }).on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`⚠️ Port ${currentPort} is in use. Trying port ${currentPort + 1}...`);
+      if (retryCount < 3) {
+        setTimeout(() => {
+          startServer(retryCount + 1);
+        }, 1000);
+      } else {
+        console.error('❌ Could not find an available port after 3 attempts');
+        process.exit(1);
+      }
+    } else {
+      console.error('❌ Server error:', err);
+      process.exit(1);
+    }
+  });
+};
+
+// Start the server
+startServer();
