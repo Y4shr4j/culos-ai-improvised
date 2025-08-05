@@ -168,46 +168,72 @@ const Navbar: React.FC<NavbarProps> = ({ user, tokens, onLogout }) => {
         </button>
 
         {/* User Info Box */}
-        {isUserBoxOpen && user && (
+        {isUserBoxOpen && (
           <div
             id="user-info-box"
             className="absolute right-0 top-16 z-50 w-64 p-4 rounded-xl bg-black bg-opacity-50 backdrop-blur-md shadow-lg flex flex-col gap-2"
           >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-culosai-accent-gold flex items-center justify-center text-2xl font-bold text-culosai-dark-brown">
-                {user.name ? user.name.charAt(0) : "U"}
-              </div>
-              <div>
-                <div className="text-culosai-gold font-norwester text-lg">
-                  {user.name || user.username || "User"}
+            {user ? (
+              <>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-culosai-accent-gold flex items-center justify-center text-2xl font-bold text-culosai-dark-brown">
+                    {user.name ? user.name.charAt(0) : "U"}
+                  </div>
+                  <div>
+                    <div className="text-culosai-gold font-norwester text-lg">
+                      {user.name || user.username || "User"}
+                    </div>
+                    {user.username && (
+                      <div className="text-culosai-gold text-xs opacity-80">@{user.username}</div>
+                    )}
+                    <div className="text-culosai-gold text-xs">
+                      {user.email || "-"}
+                    </div>
+                  </div>
                 </div>
-                {user.username && (
-                  <div className="text-culosai-gold text-xs opacity-80">@{user.username}</div>
-                )}
-                <div className="text-culosai-gold text-xs">
-                  {user.email || "-"}
+                <div className="text-culosai-gold text-sm flex items-center gap-2">
+                  Tokens: <span className="text-culosai-gold font-bold">{localTokens !== null ? localTokens : 0}</span>
+                  <button
+                    className="ml-2 px-2 py-1 bg-culosai-accent-gold text-culosai-dark-brown font-norwester rounded hover:bg-culosai-accent-gold/80 transition-colors text-xs disabled:opacity-60"
+                    onClick={handleAddTokens}
+                    disabled={tokenLoading}
+                  >
+                    +10
+                  </button>
+                  {tokenFeedback && <span className="text-green-400 text-xs ml-1">{tokenFeedback}</span>}
                 </div>
-              </div>
-            </div>
-            <div className="text-culosai-gold text-sm flex items-center gap-2">
-              Tokens: <span className="text-culosai-gold font-bold">{localTokens !== null ? localTokens : 0}</span>
-              <button
-                className="ml-2 px-2 py-1 bg-culosai-accent-gold text-culosai-dark-brown font-norwester rounded hover:bg-culosai-accent-gold/80 transition-colors text-xs disabled:opacity-60"
-                onClick={handleAddTokens}
-                disabled={tokenLoading}
-              >
-                +10
-              </button>
-              {tokenFeedback && <span className="text-green-400 text-xs ml-1">{tokenFeedback}</span>}
-            </div>
-            
-            
-            <button
-              className="mt-4 px-4 py-2 bg-culosai-accent-gold text-culosai-dark-brown font-norwester rounded-lg hover:bg-culosai-accent-gold/80 transition-colors"
-              onClick={onLogout}
-            >
-              Logout
-            </button>
+                
+                <button
+                  className="mt-4 px-4 py-2 bg-culosai-accent-gold text-culosai-dark-brown font-norwester rounded-lg hover:bg-culosai-accent-gold/80 transition-colors"
+                  onClick={onLogout}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="text-culosai-gold font-norwester text-lg mb-4">
+                  Welcome Guest!
+                </div>
+                <div className="text-culosai-gold text-sm mb-4">
+                  Login to access AI features and unlock images
+                </div>
+                <div className="flex gap-2">
+                  <Link
+                    to="/login"
+                    className="flex-1 px-4 py-2 bg-culosai-accent-gold text-culosai-dark-brown font-norwester rounded-lg hover:bg-culosai-accent-gold/80 transition-colors text-center"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="flex-1 px-4 py-2 bg-culosai-dark-brown text-culosai-cream font-norwester rounded-lg hover:bg-culosai-dark-brown/80 transition-colors text-center"
+                  >
+                    Register
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -229,29 +255,54 @@ const Navbar: React.FC<NavbarProps> = ({ user, tokens, onLogout }) => {
         <div className="md:hidden bg-culosai-dark-brown/90 backdrop-blur-sm absolute top-full left-0 right-0">
           <nav className="flex flex-col space-y-4 px-4 py-6">
             <Link
-              to="/dashboard"
+              to="/"
               className="text-culosai-gold font-norwester text-xl"
             >
               Dashboard
             </Link>
-            <Link
-              to="/aiimagegeneration"
-              className="text-culosai-gold font-norwester text-xl"
-            >
-              AI Images
-            </Link>
-            <Link
-              to="/aivideogeneration"
-              className="text-culosai-gold font-norwester text-xl"
-            >
-              AI Videos
-            </Link>
-            <Link
-              to="/aiimagegeneration"
-              className="text-culosai-gold font-norwester text-xl"
-            >
-              AI Character
-            </Link>
+            {user ? (
+              <>
+                <Link
+                  to="/aiimagegeneration"
+                  className="text-culosai-gold font-norwester text-xl"
+                >
+                  AI Images
+                </Link>
+                <Link
+                  to="/aivideogeneration"
+                  className="text-culosai-gold font-norwester text-xl"
+                >
+                  AI Videos
+                </Link>
+                <Link
+                  to="/chat"
+                  className="text-culosai-gold font-norwester text-xl"
+                >
+                  AI Character
+                </Link>
+              </>
+            ) : (
+              <>
+                <span
+                  className="text-culosai-gold font-norwester text-xl opacity-50 cursor-not-allowed"
+                  title="Login Required"
+                >
+                  AI Images
+                </span>
+                <span
+                  className="text-culosai-gold font-norwester text-xl opacity-50 cursor-not-allowed"
+                  title="Login Required"
+                >
+                  AI Videos
+                </span>
+                <span
+                  className="text-culosai-gold font-norwester text-xl opacity-50 cursor-not-allowed"
+                  title="Login Required"
+                >
+                  AI Character
+                </span>
+              </>
+            )}
             {/* Admin Link - Only visible to admin users */}
             {user?.isAdmin && (
               <Link

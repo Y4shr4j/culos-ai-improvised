@@ -61,7 +61,7 @@ const App = () => {
             <AuthProvider>
               <AgeVerificationModal />
               <Routes>
-                <Route path="/" element={<AuthIndex />} />
+                <Route path="/" element={<GeneralDashboard />} />
                 <Route path="/login" element={<AuthLogin />} />
                 <Route path="/register" element={<AuthIndex />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
@@ -134,7 +134,11 @@ const App = () => {
                 } />
 
                 {/* Chat Routes */}
-                <Route path="/chat" element={<Chat />} />
+                <Route path="/chat" element={
+                  <ProtectedRoute>
+                    <Chat />
+                  </ProtectedRoute>
+                } />
                 <Route path="/chat/*" element={<ChatNotFound />} />
 
                 {/* General Pages */}
@@ -146,8 +150,16 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
-                <Route path="/aiimagegeneration" element={<GeneralAIImageGeneration />} />
-                <Route path="/aivideogeneration" element={<GeneralAIVideoGeneration />} />
+                <Route path="/aiimagegeneration" element={
+                  <ProtectedRoute>
+                    <GeneralAIImageGeneration />
+                  </ProtectedRoute>
+                } />
+                <Route path="/aivideogeneration" element={
+                  <ProtectedRoute>
+                    <GeneralAIVideoGeneration />
+                  </ProtectedRoute>
+                } />
                 <Route path="/imagedetails" element={<GeneralImageDetails />} />
                 <Route path="/general" element={<GeneralIndex />} />
                 <Route path="/general/*" element={<GeneralNotFound />} />

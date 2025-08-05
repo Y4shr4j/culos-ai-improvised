@@ -65,10 +65,14 @@ const Dashboard: React.FC = () => {
           setTokens(userData.tokens || 0);
           setUser(userData);
         } else {
-          console.log('No token available or auth still loading');
+          console.log('No token available or auth still loading - user can still browse');
+          setUser(null);
+          setTokens(null);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
+        setUser(null);
+        setTokens(null);
       }
     };
 
@@ -362,7 +366,7 @@ const Dashboard: React.FC = () => {
     if (!selectedPackage) return null;
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] via-[#2A2A2A] to-[#513238] text-white flex items-center justify-center">
         <div className="bg-culosai-cream border border-culosai-brown rounded-[20px] md:rounded-[40px] p-4 md:p-8 w-full max-w-sm md:max-w-2xl">
           <div className="flex flex-col items-center gap-8 md:gap-16">
             {/* Header */}
@@ -842,16 +846,25 @@ const Dashboard: React.FC = () => {
                           <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center p-4 text-center text-white">
                             <Lock className="w-8 h-8 mb-2" />
                             <p className="font-semibold text-sm">Unlock for {image.unlockPrice || 1} token{(image.unlockPrice || 1) !== 1 ? 's' : ''}</p>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent image click
-                                handleUnlockImage(image._id);
-                              }}
-                              className="mt-2 bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-medium py-1 px-3 rounded-full text-xs transition-colors disabled:opacity-50"
-                              disabled={!user || unlockingImageId === image._id}
-                            >
-                              {unlockingImageId === image._id ? 'Unlocking...' : (user ? 'Unlock Image' : 'Login to Unlock')}
-                            </button>
+                            {user ? (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent image click
+                                  handleUnlockImage(image._id);
+                                }}
+                                className="mt-2 bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-medium py-1 px-3 rounded-full text-xs transition-colors disabled:opacity-50"
+                                disabled={unlockingImageId === image._id}
+                              >
+                                {unlockingImageId === image._id ? 'Unlocking...' : 'Unlock Image'}
+                              </button>
+                            ) : (
+                              <Link
+                                to="/login"
+                                className="mt-2 bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-medium py-1 px-3 rounded-full text-xs transition-colors inline-block"
+                              >
+                                Login to Unlock
+                              </Link>
+                            )}
                           </div>
                         )}
                         
