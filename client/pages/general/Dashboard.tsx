@@ -366,7 +366,7 @@ const Dashboard: React.FC = () => {
     if (!selectedPackage) return null;
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] via-[#2A2A2A] to-[#513238] text-white flex items-center justify-center">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
         <div className="bg-culosai-cream border border-culosai-brown rounded-[20px] md:rounded-[40px] p-4 md:p-8 w-full max-w-sm md:max-w-2xl">
           <div className="flex flex-col items-center gap-8 md:gap-16">
             {/* Header */}
@@ -577,7 +577,7 @@ const Dashboard: React.FC = () => {
   // Show loading state while auth is initializing
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] via-[#2A2A2A] to-[#513238] text-white flex items-center justify-center">
+<div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] from-[17%] to-[#513238] to-[25%] text-culosai-gold font-norwester text-xl">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-culosai-accent-gold mx-auto"></div>
           <p className="mt-4 text-culosai-cream">Loading...</p>
@@ -587,25 +587,23 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] via-[#2A2A2A] to-[#513238] text-white">
-      {/* Navbar */}
-      <Navbar user={user} tokens={tokens} onLogout={handleLogout} />
+<div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] from-[17%] to-[#513238] to-[25%] text-culosai-gold font-norwester text-xl">      <Navbar user={user} tokens={tokens} onLogout={handleLogout} />
 
       
-      {/* Main Content */}
+            {/* Main Content */}
       <main className="px-4 md:px-10 py-8 md:py-20">
         <div className="max-w-6xl mx-auto">
           {/* Feature Cards */}
           <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 mb-16 justify-center">
             {/* Generate Images Card */}
             <Link to="/aiimagegeneration" className="w-full lg:w-auto">
-              <div className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#813521] rounded-[20px] hover:bg-[#913721] transition-colors w-full lg:w-auto">
+              <div className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#813521] rounded-[20px] hover:bg-[#913721] transition-colors w-full lg:w-[320px]">
                 <h2 className="text-culosai-cream font-norwester text-2xl md:text-[32px] text-center">
                   Generate Images
                 </h2>
                 <div className="flex items-center gap-4">
-                  <div className="px-6 py-2 bg-culosai-accent-gold rounded-[25px]">
-                    <span className="text-culosai-dark-brown font-norwester text-xl md:text-2xl">
+                  <div className="px-6 py-2 rounded-[25px]" style={{ backgroundColor: '#FCEDBC' }}>
+                    <span className="font-norwester text-xl md:text-2xl" style={{ color: '#42100B' }}>
                       generate
                     </span>
                   </div>
@@ -639,13 +637,13 @@ const Dashboard: React.FC = () => {
 
             {/* Generate Videos Card */}
             <Link to="/aivideogeneration" className="w-full lg:w-auto">
-              <div className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#42100B] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full lg:w-auto">
+              <div className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#42100B] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full lg:w-[320px]">
                 <h2 className="text-culosai-cream font-norwester text-2xl md:text-[32px] text-center">
                   Generate Videos
                 </h2>
                 <div className="flex items-center gap-4">
-                  <div className="px-6 py-2 bg-culosai-accent-gold rounded-[25px]">
-                    <span className="text-culosai-dark-brown font-norwester text-xl md:text-2xl">
+                  <div className="px-6 py-2 rounded-[25px]" style={{ backgroundColor: '#FCEDBC' }}>
+                    <span className="font-norwester text-xl md:text-2xl" style={{ color: '#42100B' }}>
                       generate
                     </span>
                   </div>
@@ -670,13 +668,13 @@ const Dashboard: React.FC = () => {
 
             {/* Characters Card */}
             <Link to="/chat" className="w-full lg:w-auto">
-              <div className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#463034] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full lg:w-auto">
+              <div className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#463034] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full lg:w-[320px]">
                 <h2 className="text-culosai-cream font-norwester text-2xl md:text-[32px] text-center">
                   Characters
                 </h2>
                 <div className="flex items-center gap-4">
-                  <div className="px-6 py-2 bg-culosai-accent-gold rounded-[25px]">
-                    <span className="text-culosai-dark-brown font-norwester text-xl md:text-2xl">
+                  <div className="px-6 py-2 rounded-[25px]" style={{ backgroundColor: '#FCEDBC' }}>
+                    <span className="font-norwester text-xl md:text-2xl" style={{ color: '#42100B' }}>
                       generate
                     </span>
                   </div>
@@ -716,7 +714,7 @@ const Dashboard: React.FC = () => {
           {/* Content Filters and Character Showcase */}
           <div className="space-y-10">
             {/* Filter Buttons */}
-            <div className="flex justify-center">
+            <div className="flex justify-start">
               <div className="flex items-center gap-4 flex-wrap">
                 {filters.map((filter, index) => (
                   <React.Fragment key={filter.id}>
@@ -724,8 +722,8 @@ const Dashboard: React.FC = () => {
                       onClick={() => handleFilterToggle(filter.id)}
                       className={`px-6 py-2 rounded-xl font-norwester text-lg transition-colors ${
                         filter.active
-                          ? "bg-culosai-accent-gold text-culosai-dark-brown"
-                          : "bg-[#BDD8CD] text-culosai-dark-brown hover:bg-culosai-accent-gold/80"
+                          ? "bg-[#F5EDD0] text-[#42100B]"
+                          : "bg-[#BDD8CD] text-[#42100B] hover:bg-[#F5EDD0]/80 hover:text-[#42100B]"
                       }`}
                     >
                       {filter.label}
@@ -738,8 +736,8 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Character Showcase */}
-            <div className="flex justify-center">
+            {/* Character Showcase
+            <div className="flex justify-start">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-14">
                 {characters.map((character) => (
                   <div
@@ -775,26 +773,26 @@ const Dashboard: React.FC = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Image Gallery Section */}
             <div className="space-y-6">
-              <div className="text-center">
+              {/* <div className="text-left">
                 <h2 className="text-culosai-cream font-norwester text-2xl md:text-3xl mb-4">
                   Gallery Images
                 </h2>
                 <p className="text-culosai-accent-gold font-norwester text-sm md:text-base">
                   Unlock images with tokens to remove blur effect
                 </p>
-              </div>
+              </div> */}
               
               {loading ? (
-                <div className="text-center text-culosai-cream">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-culosai-accent-gold mx-auto"></div>
+                <div className="text-left text-culosai-cream">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-culosai-accent-gold"></div>
                   <p className="mt-4">Loading images...</p>
                 </div>
               ) : !Array.isArray(images) || images.length === 0 ? (
-                <div className="text-center text-culosai-cream">
+                <div className="text-left text-culosai-cream">
                   <p className="text-lg">No images found</p>
                   <p className="text-sm text-culosai-accent-gold">Upload some images from the admin panel</p>
                 </div>

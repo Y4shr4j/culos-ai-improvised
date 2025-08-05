@@ -113,7 +113,7 @@ export default function Login() {
               <p className="text-culosai-form-text font-dm-sans">
                 Don't have an account?{" "}
                 <a
-                  href="/"
+                  href="/register"
                   className="text-culosai-gold hover:opacity-80 transition-opacity font-medium"
                 >
                   Sign up here

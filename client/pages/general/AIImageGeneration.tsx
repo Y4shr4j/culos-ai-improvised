@@ -138,8 +138,8 @@ export default function AIImageGeneration() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] via-[#2A2A2A] to-[#513238] font-norwester">
-      {/* Navbar */}
+<div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] from-[17%] to-[#513238] to-[25%] text-culosai-gold font-norwester text-xl">
+{/* Navbar */}
       <Navbar user={user} tokens={tokens} onLogout={handleLogout} />
 
       {/* Main Content */}

@@ -1,36 +1,45 @@
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+
 export default function Header() {
   return (
-    <header className="w-full flex flex-col lg:flex-row lg:justify-between lg:items-center px-4 lg:px-10 py-4 lg:py-5 gap-4 lg:gap-0">
-      <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-[277px]">
-        <div className="flex items-center gap-[5px] justify-center lg:justify-start">
-          <span className="text-culosai-gold font-norwester text-2xl lg:text-[32px] font-normal">
+    <header className="flex justify-between items-center px-4 md:px-10 py-5">
+      {/* Logo and Navigation */}
+      <div className="flex items-center gap-4 md:gap-[277px]">
+        <Link
+          to="/"
+          className="flex items-center gap-1 hover:opacity-80 transition-opacity"
+        >
+          <span className="text-culosai-gold font-norwester text-2xl md:text-[32px]">
             CulosAI
           </span>
           <img
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/4fb596f0bfff741645e7ef0e554161c9bea1e0ee?width=74"
             alt="CulosAI Logo"
-            className="w-[30px] h-[28px] lg:w-[37px] lg:h-[34px]"
+            className="w-8 h-8 md:w-[37px] md:h-[34px]"
           />
-        </div>
-        <nav className="flex items-center justify-center lg:justify-start gap-6 lg:gap-[42px] flex-wrap">
-          <a
-            href="#"
-            className="text-culosai-gold font-norwester text-lg lg:text-xl font-normal hover:opacity-80 transition-opacity"
+        </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-20 justify-center">
+          <Link
+            to="/aiimagegeneration"
+            className="text-culosai-gold font-norwester text-xl hover:opacity-80 transition-opacity"
           >
             AI Images
-          </a>
-          <a
-            href="#"
-            className="text-culosai-gold font-norwester text-lg lg:text-xl font-normal hover:opacity-80 transition-opacity"
+          </Link>
+          <Link
+            to="/aivideogeneration"
+            className="text-culosai-gold font-norwester text-xl hover:opacity-80 transition-opacity"
           >
             AI Videos
-          </a>
-          <a
-            href="#"
-            className="text-culosai-gold font-norwester text-lg lg:text-xl font-normal hover:opacity-80 transition-opacity"
+          </Link>
+          <Link
+            to="/chat"
+            className="text-culosai-gold font-norwester text-xl hover:opacity-80 transition-opacity"
           >
             AI Character
-          </a>
+          </Link>
         </nav>
       </div>
 
@@ -44,7 +53,7 @@ export default function Header() {
           </span>
         </a>
         <a
-          href="/"
+          href="/register"
           className="flex px-4 lg:px-6 py-2 lg:py-[10px] justify-center items-center gap-[10px] rounded-[15px] border border-black bg-transparent hover:bg-black/10 transition-colors"
         >
           <span className="text-culosai-register-btn font-norwester text-sm lg:text-base font-normal">

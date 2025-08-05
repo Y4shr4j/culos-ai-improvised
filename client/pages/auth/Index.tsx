@@ -129,7 +129,7 @@ export default function Index() {
               {/* Mobile Create Account Button */}
               <button
                 type="submit"
-                className="lg:hidden w-full h-[66px] flex items-center justify-center gap-[10px] rounded-[10px] border border-black bg-culosai-create-btn hover:bg-culosai-create-btn/90 transition-colors px-8 py-4"
+                className="lg:hidden w-full h-[66px] flex items-center justify-center rounded-[10px] border border-black bg-culosai-create-btn hover:bg-culosai-create-btn/90 transition-colors"
               >
                 <span className="text-culosai-create-btn-text font-norwester text-2xl lg:text-[32px] font-normal">
                   Create Account
@@ -153,7 +153,7 @@ export default function Index() {
             {/* Desktop Create Account Button */}
             <button
               type="submit"
-              className="hidden lg:flex w-full h-[66px] items-center justify-center gap-[10px] rounded-[10px] border border-black bg-culosai-create-btn hover:bg-culosai-create-btn/90 transition-colors px-[70px] py-[14px]"
+              className="hidden lg:flex w-full h-[66px] items-center justify-center rounded-[10px] border border-black bg-culosai-create-btn hover:bg-culosai-create-btn/90 transition-colors"
               onClick={handleSubmit}
             >
               <span className="text-culosai-create-btn-text font-norwester text-[32px] font-normal">
