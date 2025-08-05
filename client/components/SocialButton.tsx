@@ -22,13 +22,14 @@ export default function SocialButton({
   const handleSocialLogin = () => {
     const getBackendURL = () => {
       const envURL = import.meta.env.VITE_API_BASE_URL;
-      if (!envURL) return "http://localhost:5000/api";
+      if (!envURL) return "http://localhost:5000";
       
-      // If the URL already ends with /api, use it as is
-      if (envURL.endsWith('/api')) return envURL;
+      // For OAuth, we need the base URL without /api
+      if (envURL.endsWith('/api')) {
+        return envURL.replace('/api', '');
+      }
       
-      // If it doesn't end with /api, add it
-      return `${envURL}/api`;
+      return envURL;
     };
     
     const BACKEND_URL = getBackendURL();

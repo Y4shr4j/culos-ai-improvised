@@ -104,6 +104,58 @@ setTimeout(() => {
   initializeAIConfig();
 }, 1000);
 
+// OAuth routes MUST be defined BEFORE API routes to avoid conflicts
+console.log('🔧 Registering OAuth routes...');
+
+// OAuth callback routes are handled in auth.routes.ts
+// But we also need routes without /api prefix for Google OAuth redirects
+app.get("/auth/google/callback", (req, res, next) => {
+  console.log('🔍 OAuth Google callback route hit:', req.url);
+  passport.authenticate('google', { 
+    failureRedirect: '/login',
+    session: false 
+  })(req, res, next);
+}, async (req, res) => {
+  // Import the socialAuthCallback function
+  const { socialAuthCallback } = await import('./controllers/auth.controller.js');
+  socialAuthCallback(req, res);
+});
+
+app.get("/auth/facebook/callback", (req, res, next) => {
+  console.log('🔍 OAuth Facebook callback route hit:', req.url);
+  passport.authenticate('facebook', { 
+    failureRedirect: '/login',
+    session: false 
+  })(req, res, next);
+}, async (req, res) => {
+  // Import the socialAuthCallback function
+  const { socialAuthCallback } = await import('./controllers/auth.controller.js');
+  socialAuthCallback(req, res);
+});
+
+// OAuth initiation routes without /api prefix
+app.get("/auth/google", (req, res, next) => {
+  console.log('🔍 OAuth Google route hit:', req.url);
+  passport.authenticate('google', { 
+    scope: ['profile', 'email'] 
+  })(req, res, next);
+});
+
+app.get("/auth/facebook", (req, res, next) => {
+  console.log('🔍 OAuth Facebook route hit:', req.url);
+  passport.authenticate('facebook', { 
+    scope: ['public_profile'] 
+  })(req, res, next);
+});
+
+// Test route for OAuth debugging
+app.get("/auth/test", (_req: Request, res: Response) => {
+  console.log('🔍 OAuth test route hit');
+  res.json({ message: "OAuth routes are working!", timestamp: new Date().toISOString() });
+});
+
+console.log('✅ OAuth routes registered successfully');
+
 // Use auth routes
 app.use("/api/auth", authRoutes);
 app.use('/api/images', imageRoutes);
@@ -137,25 +189,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/characters', characterRoutes);
 app.use('/api/chat', chatRoutes);
-
-// Add direct callback routes for OAuth (in case Google redirects to /auth instead of /api/auth)
-app.get("/auth/google/callback", passport.authenticate('google', { 
-  failureRedirect: '/login',
-  session: false 
-}), async (req, res) => {
-  // Import the socialAuthCallback function
-  const { socialAuthCallback } = await import('./controllers/auth.controller.js');
-  socialAuthCallback(req, res);
-});
-
-app.get("/auth/facebook/callback", passport.authenticate('facebook', { 
-  failureRedirect: '/login',
-  session: false 
-}), async (req, res) => {
-  // Import the socialAuthCallback function
-  const { socialAuthCallback } = await import('./controllers/auth.controller.js');
-  socialAuthCallback(req, res);
-});
 
 // JWT generator
 const generateToken = (id: string): string => {
@@ -495,8 +528,40 @@ app.post(
   }
 );
 
+// Catch-all route for debugging
+app.use('*', (req: Request, res: Response) => {
+  console.log('🔍 Catch-all route hit:', req.method, req.originalUrl);
+  res.status(404).json({ 
+    message: 'Route not found', 
+    method: req.method, 
+    url: req.originalUrl,
+    availableRoutes: [
+      '/',
+      '/auth/test',
+      '/auth/google',
+      '/auth/google/callback',
+      '/auth/facebook',
+      '/auth/facebook/callback',
+      '/api/auth/*',
+      '/api/images/*',
+      '/api/payment/*',
+      '/api/categories',
+      '/api/admin/*',
+      '/api/posts/*',
+      '/api/characters/*',
+      '/api/chat/*'
+    ]
+  });
+});
+
 // Start server after DB connection
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log('📋 Available routes:');
+  console.log('  - /auth/test');
+  console.log('  - /auth/google');
+  console.log('  - /auth/google/callback');
+  console.log('  - /auth/facebook');
+  console.log('  - /auth/facebook/callback');
 });

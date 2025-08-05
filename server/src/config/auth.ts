@@ -75,10 +75,23 @@ console.log('Checking Google OAuth config:', {
 });
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  // Determine the correct callback URL based on environment
+  const getCallbackURL = () => {
+    if (process.env.OAUTH_CALLBACK_URL) {
+      return process.env.OAUTH_CALLBACK_URL;
+    }
+    // For production, use the Railway URL
+    if (process.env.NODE_ENV === 'production') {
+      return `https://culosai-production.up.railway.app/api/auth/google/callback`;
+    }
+    // For development, use localhost
+    return "http://localhost:5000/api/auth/google/callback";
+  };
+
   passport.use(new GoogleStrategy({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.OAUTH_CALLBACK_URL || "http://localhost:5000/api/auth/google/callback",
+      callbackURL: getCallbackURL(),
       scope: ['profile', 'email'],
       passReqToCallback: true
     },
@@ -105,11 +118,24 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
   console.log('Facebook App ID:', process.env.FACEBOOK_APP_ID);
   console.log('Facebook App Secret length:', process.env.FACEBOOK_APP_SECRET?.length || 0);
   
+  // Determine the correct callback URL for Facebook
+  const getFacebookCallbackURL = () => {
+    if (process.env.OAUTH_CALLBACK_URL) {
+      return process.env.OAUTH_CALLBACK_URL.replace('/google/callback', '/facebook/callback');
+    }
+    // For production, use the Railway URL
+    if (process.env.NODE_ENV === 'production') {
+      return `https://culosai-production.up.railway.app/api/auth/facebook/callback`;
+    }
+    // For development, use localhost
+    return "http://localhost:5000/api/auth/facebook/callback";
+  };
+
   const facebookStrategy = new FacebookStrategy(
     {
       clientID: process.env.FACEBOOK_APP_ID,
       clientSecret: process.env.FACEBOOK_APP_SECRET,
-      callbackURL: "http://localhost:5000/api/auth/facebook/callback",
+      callbackURL: getFacebookCallbackURL(),
       profileFields: ['id', 'emails', 'name', 'displayName', 'photos'],
       passReqToCallback: true
     },
