@@ -86,25 +86,23 @@ export default function ChatArea({
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-800">
+    <div className="flex-1 flex flex-col bg-[#171717] font-norwester">
       {/* Chat Header */}
-      <div className="bg-gray-900 border-b border-gray-700 p-4 flex items-center justify-between">
+      <div className="bg-[#171717] border-b border-[#FCEDBC]/20 p-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <img
             src={selectedCharacter.avatar}
             alt={selectedCharacter.name}
             className="w-10 h-10 rounded-full object-cover"
           />
-          <h2 className="font-semibold text-white text-lg">
+          <h2 className="font-norwester text-[#FCEDBC] text-lg">
             {selectedCharacter.name}
           </h2>
         </div>
-
-        <Button variant="ghost" size="icon" className="text-white hover:bg-gray-700">
+        <Button variant="ghost" size="icon" className="text-[#FCEDBC] hover:bg-[#FCEDBC]/10">
           <Menu className="w-6 h-6" />
         </Button>
       </div>
-
       <MessageList sessionId={sessionId} character={selectedCharacter} />
       <MessageInput sessionId={sessionId} character={selectedCharacter} />
     </div>

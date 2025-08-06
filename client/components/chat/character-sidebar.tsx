@@ -84,16 +84,16 @@ export default function CharacterSidebar({
   onClearChat,
 }: CharacterSidebarProps) {
   return (
-    <div className="w-80 bg-gray-900 border-r border-gray-700 flex flex-col flex-shrink-0">
+    <div className="w-80 bg-[#2A2A2A] border-r border-[#FCEDBC]/20 flex flex-col flex-shrink-0">
       {/* Sidebar Header */}
-      <div className="p-6 border-b border-gray-700">
-        <h1 className="text-xl font-semibold text-white">CHAT</h1>
+      <div className="p-6 border-b border-[#FCEDBC]/20">
+        <h1 className="text-xl font-norwester text-[#FCEDBC]">CHAT</h1>
         <div className="relative mt-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#FCEDBC]/60" />
           <input
             type="text"
             placeholder="Search for profile..."
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="w-full bg-[#2A2A2A] border border-[#FCEDBC]/20 rounded-lg pl-10 pr-4 py-2 text-[#FCEDBC] font-norwester placeholder-[#FCEDBC]/40 focus:outline-none focus:ring-2 focus:ring-[#FCEDBC]"
           />
         </div>
       </div>
@@ -112,11 +112,11 @@ export default function CharacterSidebar({
       </div>
 
       {/* Sidebar Footer */}
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-[#FCEDBC]/20">
         <Button
           onClick={onClearChat}
           variant="outline"
-          className="w-full bg-transparent border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+          className="w-full bg-[#FCEDBC] text-[#2A2A2A] font-norwester rounded-[25px] hover:bg-[#F8C679] hover:text-[#2A2A2A] border-none"
         >
           <Trash2 className="w-4 h-4 mr-2" />
           Clear Chat History

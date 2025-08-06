@@ -65,14 +65,14 @@ export default function MessageInput({ sessionId, character }: MessageInputProps
   };
 
   return (
-    <div className="p-6 bg-gray-900 border-t border-gray-700">
-       <p className="text-sm text-gray-400 mb-2">Suggestion: Hi there! Ever traveled somewhere and just fell in love with it?</p>
+    <div className="p-6 bg-[#23201A]">
+      <p className="text-sm text-[#FCEDBC]/70 mb-2 font-norwester">Suggestion: Hi there! Ever traveled somewhere and just fell in love with it?</p>
       <div className="relative">
         <Textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Write a message..."
-          className="w-full bg-gray-800 border-none rounded-lg pr-20 py-3 pl-4 text-white resize-none focus:ring-2 focus:ring-yellow-400"
+          className="w-full bg-[#171717] rounded-lg pr-20 py-3 pl-4 text-[#FCEDBC] font-norwester resize-none focus:ring-2 focus:ring-[#FCEDBC] placeholder-[#FCEDBC]/40 border-none"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -81,14 +81,14 @@ export default function MessageInput({ sessionId, character }: MessageInputProps
           }}
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2">
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
+          <Button variant="ghost" size="icon" className="text-[#FCEDBC]/60 hover:text-[#FCEDBC]">
             <Paperclip className="w-5 h-5" />
           </Button>
           <Button
             onClick={handleSendMessage}
             disabled={sendMessageMutation.isPending}
             size="icon"
-            className="bg-yellow-400 text-gray-900 rounded-full hover:bg-yellow-500 disabled:bg-gray-600"
+            className="bg-[#CD8246] text-[#2A2A2A] rounded-full font-norwester hover:bg-[#FCEDBC] hover:text-[#2A2A2A] disabled:bg-[#FCEDBC]/40"
           >
             <Send className="w-5 h-5" />
           </Button>

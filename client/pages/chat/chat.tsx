@@ -94,7 +94,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen bg-gray-800 text-white flex flex-col overflow-hidden" style={{ margin: 0, padding: 0 }}>
+    <div className="h-screen bg-[#2A2A2A] text-[#FCEDBC] font-norwester flex flex-col overflow-hidden" style={{ margin: 0, padding: 0 }}>
       <Navbar user={user} tokens={user?.tokens || 0} onLogout={handleLogout} />
       <div className="flex flex-1 min-h-0">
         <CharacterSidebar
@@ -123,17 +123,17 @@ export default function ChatPage() {
           }}
         />
         {/* Right Sidebar for Character Profile */}
-        <div className="w-80 bg-gray-900 p-4 border-l border-gray-700 flex-shrink-0">
+        <div className="w-80 bg-[#2A2A2A] p-4 flex-shrink-0">
           {selectedCharacter && (
             <div className="flex flex-col items-center text-center h-full">
               <img
                 src={selectedCharacter.avatar}
                 alt={selectedCharacter.name}
-                className="w-32 h-32 rounded-full object-cover border-4 border-yellow-400"
+                className="w-full h-56 object-cover"
               />
-              <h2 className="text-xl font-bold mt-3">{selectedCharacter.name}</h2>
-              <p className="text-sm text-gray-400 mt-2 text-center">{selectedCharacter.description}</p>
-              <button className="mt-4 bg-yellow-400 text-gray-900 font-bold py-2 px-4 rounded-lg text-sm">
+              <h2 className="text-2xl font-norwester mt-3 text-[#FCEDBC]">{selectedCharacter.name}</h2>
+              <p className="text-sm text-[#FCEDBC]/70 mt-2 text-center font-norwester">{selectedCharacter.description}</p>
+              <button className="mt-4 bg-[#FCEDBC] text-[#2A2A2A] font-norwester py-2 px-4 rounded-[25px] text-sm hover:bg-[#F8C679] transition-colors">
                 Generate Image
               </button>
             </div>
