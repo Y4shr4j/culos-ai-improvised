@@ -74,19 +74,19 @@ const Navbar: React.FC<NavbarProps> = ({ user, tokens, onLogout }) => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-20 justify-center">
           <Link
-            to="/aiimagegeneration"
+            to="/ai-images"
             className="text-culosai-gold font-norwester text-xl hover:opacity-80 transition-opacity"
           >
             AI Images
           </Link>
           <Link
-            to="/aivideogeneration"
+            to="/ai-videos"
             className="text-culosai-gold font-norwester text-xl hover:opacity-80 transition-opacity"
           >
             AI Videos
           </Link>
           <Link
-            to="/chat"
+            to="/ai-characters"
             className="text-culosai-gold font-norwester text-xl hover:opacity-80 transition-opacity"
           >
             AI Character
@@ -124,7 +124,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, tokens, onLogout }) => {
         )}
 
         {/* Token Status Only */}
-        <div className="flex items-center gap-2 px-4 py-2 bg-[#FFEBC2] rounded-[20px] border border-[#42100B]">
+        <Link to="/general" className="flex items-center gap-2 px-4 py-2 bg-[#FFEBC2] rounded-[20px] border border-[#42100B] hover:opacity-80 transition-opacity">
         <span className="text-[#42100B] font-norwester text-base">+ More Milk</span>
 
         <img
@@ -135,7 +135,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, tokens, onLogout }) => {
           <span className="text-[#42100B] font-norwester text-base">
             ({tokens !== null ? tokens : 0})
           </span>
-        </div>
+        </Link>
 
         {/* Profile/Logo Button */}
         <button
@@ -263,19 +263,19 @@ const Navbar: React.FC<NavbarProps> = ({ user, tokens, onLogout }) => {
             {user ? (
               <>
                 <Link
-                  to="/aiimagegeneration"
+                  to="/ai-images"
                   className="text-culosai-gold font-norwester text-xl"
                 >
                   AI Images
                 </Link>
                 <Link
-                  to="/aivideogeneration"
+                  to="/ai-videos"
                   className="text-culosai-gold font-norwester text-xl"
                 >
                   AI Videos
                 </Link>
                 <Link
-                  to="/chat"
+                  to="/ai-characters"
                   className="text-culosai-gold font-norwester text-xl"
                 >
                   AI Character

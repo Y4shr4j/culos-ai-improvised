@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { User, ChevronLeft, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";
-import { post } from "../../src/utils/api";
+import { get, post } from "../../src/utils/api";
 import { PayPalButtons } from "@paypal/react-paypal-js";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -52,12 +52,12 @@ const Index: React.FC = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
-        credentials: "include",
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data);
+      try {
+        const userData = await get<any>('/auth/me');
+        setUser(userData);
+      } catch (error) {
+        console.warn('Failed to fetch user:', error);
+        setUser(null);
       }
     };
     fetchUser();
@@ -65,12 +65,12 @@ const Index: React.FC = () => {
 
   useEffect(() => {
     const fetchTokens = async () => {
-      const response = await fetch(`${API_BASE_URL}/api/auth/tokens`, {
-        credentials: "include",
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setTokens(data.tokens);
+      try {
+        const tokenData = await get<any>('/auth/tokens');
+        setTokens(tokenData.tokens);
+      } catch (error) {
+        console.warn('Failed to fetch tokens:', error);
+        setTokens(0);
       }
     };
     fetchTokens();
@@ -106,12 +106,11 @@ const Index: React.FC = () => {
         packageId: selectedPackage,
       });
       // Refresh tokens or update UI
-      const response = await fetch(`${API_BASE_URL}/api/auth/tokens`, {
-        credentials: "include",
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setTokens(data.tokens);
+      try {
+        const tokenData = await get<any>('/auth/tokens');
+        setTokens(tokenData.tokens);
+      } catch (error) {
+        console.warn('Failed to refresh tokens:', error);
       }
       setShowPaymentModal(false);
     } catch (error) {
@@ -122,13 +121,15 @@ const Index: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    await fetch(`${API_BASE_URL}/api/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
-    setUser(null);
-    setTokens(null);
-    window.location.href = "/login";
+    try {
+      await get('/auth/logout');
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      setTokens(null);
+      window.location.href = "/login";
+    }
   };
 
   const handleTokenPurchase = (packageId: string) => {

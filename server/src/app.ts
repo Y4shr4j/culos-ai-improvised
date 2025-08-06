@@ -19,6 +19,7 @@ import adminRoutes from './routes/admin.routes';
 import postRoutes from './routes/post.routes';
 import characterRoutes from './routes/character.routes';
 import chatRoutes from './routes/chat.routes';
+import videoRoutes from './routes/video.routes';
 
 // Add MulterRequest interface for type safety
 interface MulterRequest extends Request {
@@ -143,6 +144,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/characters', characterRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/videos', videoRoutes);
 
 // JWT generator
 const generateToken = (id: string): string => {

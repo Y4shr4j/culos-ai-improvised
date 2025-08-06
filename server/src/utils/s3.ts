@@ -20,8 +20,9 @@ const UPLOAD_FOLDER = process.env.AWS_S3_UPLOAD_FOLDER || 'ChatImage';
 
 export const uploadToS3 = async (file: UploadedFile, folder: string = UPLOAD_FOLDER): Promise<string> => {
   const fileExtension = file.originalname.split('.').pop();
-  // Force the correct folder
-  const key = `ChatImage/${uuidv4()}.${fileExtension}`;
+  // Use the provided folder or default to ChatImage
+  const folderName = folder === 'videos' ? 'ChatVideo' : folder === 'images' ? 'ChatImage' : folder;
+  const key = `${folderName}/${uuidv4()}.${fileExtension}`;
 
   console.log('>>> DEBUG S3 UPLOAD <<<');
   console.log('Bucket:', BUCKET_NAME);

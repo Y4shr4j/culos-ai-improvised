@@ -15,6 +15,7 @@ import AdminCategories from "./pages/admin/Categories";
 import AdminCharacters from "./pages/admin/Characters";
 import AdminImages from "./pages/admin/Images";
 import AdminUploadImages from "./pages/admin/UploadImages";
+import AdminUploadVideos from "./pages/admin/UploadVideos";
 import AdminNotFound from "./pages/admin/NotFound";
 import AdminPosts from "./pages/admin/Posts";
 import AdminTokenSettings from "./pages/admin/TokenSettings";
@@ -32,6 +33,8 @@ import ChatNotFound from "./pages/chat/NotFound";
 
 import GeneralAIImageGeneration from "./pages/general/AIImageGeneration";
 import GeneralAIVideoGeneration from "./pages/general/AIVideoGeneration";
+import GeneralAIVideoGallery from "./pages/general/AIVideoGallery";
+import GeneralAICharacterGallery from "./pages/general/AICharacterGallery";
 import GeneralDashboard from "./pages/general/Dashboard";
 import GeneralImageDetails from "./pages/general/ImageDetails";
 import GeneralIndex from "./pages/general/Index";
@@ -107,6 +110,11 @@ const App = () => {
                     <AdminUploadImages />
                   </AdminRoute>
                 } />
+                <Route path="/admin/upload-videos" element={
+                  <AdminRoute>
+                    <AdminUploadVideos />
+                  </AdminRoute>
+                } />
                 <Route path="/admin/posts" element={
                   <AdminRoute>
                     <AdminPosts />
@@ -160,6 +168,9 @@ const App = () => {
                     <GeneralAIVideoGeneration />
                   </ProtectedRoute>
                 } />
+                <Route path="/ai-images" element={<GeneralDashboard />} />
+                <Route path="/ai-videos" element={<GeneralAIVideoGallery />} />
+                <Route path="/ai-characters" element={<GeneralAICharacterGallery />} />
                 <Route path="/imagedetails" element={<GeneralImageDetails />} />
                 <Route path="/general" element={<GeneralIndex />} />
                 <Route path="/general/*" element={<GeneralNotFound />} />

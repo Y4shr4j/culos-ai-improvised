@@ -23,19 +23,19 @@ export default function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-20 justify-center">
           <Link
-            to="/aiimagegeneration"
+            to="/ai-images"
             className="text-culosai-gold font-norwester text-xl hover:opacity-80 transition-opacity"
           >
             AI Images
           </Link>
           <Link
-            to="/aivideogeneration"
+            to="/ai-videos"
             className="text-culosai-gold font-norwester text-xl hover:opacity-80 transition-opacity"
           >
             AI Videos
           </Link>
           <Link
-            to="/chat"
+            to="/ai-characters"
             className="text-culosai-gold font-norwester text-xl hover:opacity-80 transition-opacity"
           >
             AI Character

@@ -47,6 +47,11 @@ const navigationItems = [
     href: "/admin/upload-images",
     icon: Upload,
   },
+  {
+    title: "Upload Videos",
+    href: "/admin/upload-videos",
+    icon: Video,
+  },
 ];
 
 const categoriesItems = [
