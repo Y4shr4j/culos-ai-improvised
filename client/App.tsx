@@ -168,7 +168,6 @@ const App = () => {
                     <GeneralAIVideoGeneration />
                   </ProtectedRoute>
                 } />
-                <Route path="/ai-images" element={<GeneralDashboard />} />
                 <Route path="/ai-videos" element={<GeneralAIVideoGallery />} />
                 <Route path="/ai-characters" element={<GeneralAICharacterGallery />} />
                 <Route path="/imagedetails" element={<GeneralImageDetails />} />

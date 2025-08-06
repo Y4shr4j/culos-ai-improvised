@@ -87,6 +87,26 @@ export default function AIImageGeneration() {
       setTokens(user.tokens);
     }
     fetchCategories();
+    
+    // Handle URL parameters for remix functionality
+    const urlParams = new URLSearchParams(window.location.search);
+    const remixPrompt = urlParams.get('prompt');
+    if (remixPrompt) {
+      setPromptText(remixPrompt);
+    }
+    
+    // Handle category selections from URL
+    const categoryParams = Array.from(urlParams.entries())
+      .filter(([key]) => key.startsWith('category_'))
+      .reduce((acc, [key, value]) => {
+        const categoryName = key.replace('category_', '');
+        acc[categoryName] = value;
+        return acc;
+      }, {} as Record<string, string>);
+    
+    if (Object.keys(categoryParams).length > 0) {
+      setSelectedCategoryItems(categoryParams);
+    }
   }, [user]);
 
   const fetchCategories = async () => {
@@ -139,7 +159,7 @@ export default function AIImageGeneration() {
 
   return (
 <div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] from-[17%] to-[#513238] to-[25%] text-culosai-gold font-norwester text-xl">
-{/* Navbar */}
+      {/* Navbar */}
       <Navbar user={user} tokens={tokens} onLogout={handleLogout} />
 
       {/* Main Content */}

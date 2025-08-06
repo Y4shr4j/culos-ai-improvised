@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { connectDB } from "./config/db";
 import { UserModel, IUser } from "./models/user";
+import { ImageModel } from "./models/image";
 import cookieParser from "cookie-parser";
 import axios from "axios";
 import FormData from "form-data";
@@ -20,6 +21,7 @@ import postRoutes from './routes/post.routes';
 import characterRoutes from './routes/character.routes';
 import chatRoutes from './routes/chat.routes';
 import videoRoutes from './routes/video.routes';
+import { uploadToS3 } from "./utils/s3";
 
 // Add MulterRequest interface for type safety
 interface MulterRequest extends Request {
@@ -137,6 +139,19 @@ app.get('/api/categories', async (req: Request, res: Response) => {
     console.error('Error fetching categories:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
+});
+
+// Test endpoint to check environment variables
+app.get('/api/test-env', (req: Request, res: Response) => {
+  res.json({
+    awsRegion: process.env.AWS_REGION || 'NOT SET',
+    awsBucket: process.env.AWS_S3_BUCKET || 'NOT SET',
+    awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID ? 'SET' : 'NOT SET',
+    awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ? 'SET' : 'NOT SET',
+    stabilityApiKey: process.env.STABILITY_API_KEY ? 'SET' : 'NOT SET',
+    nodeEnv: process.env.NODE_ENV || 'NOT SET',
+    port: process.env.PORT || 'NOT SET'
+  });
 });
 
 app.use('/api/admin', adminRoutes);
@@ -295,24 +310,39 @@ app.post("/api/auth/logout", (req, res) => {
 
 // Generate Image
 app.post("/api/generate", authMiddleware, async (req, res) => {
+  console.log('>>> /api/generate route hit <<<');
+  console.log('Request body:', req.body);
+  console.log('User:', (req as any).user);
+  
   try {
     const { prompt, aspectRatio, category, type, categorySelections } = req.body;
     const user = (req as any).user;
 
+    console.log('Processing image generation request...');
+    console.log('Prompt:', prompt);
+    console.log('Aspect ratio:', aspectRatio);
+    console.log('Category:', category);
+    console.log('Category selections:', categorySelections);
+
     // 1. Check tokens
     if (user.tokens < 1) {
+      console.log('User has insufficient tokens:', user.tokens);
       return res.status(400).json({ message: "Not enough tokens" });
     }
 
     // 2. Deduct 1 token
     user.tokens -= 1;
     await user.save();
+    console.log('Token deducted. New balance:', user.tokens);
 
     // 3. Call Stability AI API
     const apiKey = process.env.STABILITY_API_KEY || "sk-YCIPirgXVCGX78tvpT4o7DHA81UgxXg5f5XqAtUt6KCCwR2k";
     if (!apiKey) {
+      console.log('Stability API key not set');
       return res.status(500).json({ message: "Stability API key not set" });
     }
+
+    console.log('Calling Stability AI API...');
 
     // Determine width/height from aspectRatio
     let width = 1024;
@@ -335,6 +365,8 @@ app.post("/api/generate", authMiddleware, async (req, res) => {
       }
     }
 
+    console.log('Image dimensions:', width, 'x', height);
+
     // Enhanced prompt with category context
     let enhancedPrompt = prompt;
     if (categorySelections && Object.keys(categorySelections).length > 0) {
@@ -343,6 +375,8 @@ app.post("/api/generate", authMiddleware, async (req, res) => {
         .join(', ');
       enhancedPrompt = `${prompt} ${categoryContext}`.trim();
     }
+
+    console.log('Enhanced prompt:', enhancedPrompt);
 
     const response = await axios.post(
       "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
@@ -363,13 +397,70 @@ app.post("/api/generate", authMiddleware, async (req, res) => {
       }
     );
 
+    console.log('Stability AI response received');
     const base64 = response.data.artifacts[0].base64;
-    const imageUrl = `data:image/png;base64,${base64}`;
+    // Convert base64 to buffer
+    const buffer = Buffer.from(base64, 'base64');
+    console.log('Image buffer created, size:', buffer.length);
+    
+    // Upload to S3
+    console.log('Uploading to S3...');
+    const s3Url = await uploadToS3({
+      originalname: `ai-generated-${Date.now()}.png`,
+      mimetype: "image/png",
+      buffer,
+      size: buffer.length,
+    }, 'images');
 
-    res.json({ imageUrl });
+    console.log('S3 upload successful, URL:', s3Url);
+
+    // Save the generated image with metadata
+    try {
+      const image = new ImageModel({
+        url: s3Url,
+        title: `AI Generated - ${prompt.substring(0, 50)}...`,
+        description: prompt,
+        prompt: prompt,
+        categorySelections: categorySelections || {},
+        category: category,
+        tags: categorySelections ? Object.values(categorySelections) : [],
+        isBlurred: false, // Generated images are unlocked by default
+        blurIntensity: 0,
+        uploadedBy: user._id,
+        width: width,
+        height: height,
+        size: buffer.length,
+        mimeType: "image/png",
+        unlockPrice: 0, // Generated images are free
+        unlockCount: 0,
+        isActive: true // Make sure AI-generated images are active
+      });
+
+      await image.save();
+      console.log('Image saved to database with ID:', image._id);
+    } catch (saveError) {
+      console.error('Error saving generated image:', saveError);
+      // Don't fail the request if saving metadata fails
+    }
+
+    console.log('Image generation completed successfully');
+    res.json({ imageUrl: s3Url });
   } catch (err) {
-    console.error((err as any)?.response?.data || err);
-    res.status(500).json({ message: "Failed to generate image" });
+    console.error('>>> /api/generate ERROR <<<');
+    console.error('Error details:', err);
+    console.error('Error response:', (err as any)?.response?.data);
+    console.error('Error status:', (err as any)?.response?.status);
+    
+    // Provide more specific error messages
+    if ((err as any)?.response?.status === 401) {
+      res.status(500).json({ message: "Invalid Stability AI API key" });
+    } else if ((err as any)?.response?.status === 429) {
+      res.status(500).json({ message: "Stability AI rate limit exceeded" });
+    } else if ((err as any)?.response?.status === 400) {
+      res.status(500).json({ message: "Invalid request to Stability AI" });
+    } else {
+      res.status(500).json({ message: "Failed to generate image", error: (err as any)?.message || 'Unknown error' });
+    }
   }
 });
 
@@ -502,10 +593,14 @@ app.use('*', (req: Request, res: Response) => {
       '/api/images/*',
       '/api/payment/*',
       '/api/categories',
+      '/api/test-env',
+      '/api/generate',
+      '/api/generate-video',
       '/api/admin/*',
       '/api/posts/*',
       '/api/characters/*',
-      '/api/chat/*'
+      '/api/chat/*',
+      '/api/videos/*'
     ]
   });
 });

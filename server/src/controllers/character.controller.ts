@@ -64,15 +64,16 @@ export const getCharacterById = async (req: Request, res: Response) => {
 // Create new character
 export const createCharacter = async (req: Request, res: Response) => {
   try {
-    const { name, description, personality, image, category, tags } = req.body;
+    const { name, description, personality, avatar, category, traits, systemPrompt } = req.body;
     
     const character = await CharacterModel.create({
       name,
       description,
       personality,
-      image,
+      image: avatar, // Map avatar to image field
       category,
-      tags: tags || [],
+      tags: traits || [], // Map traits to tags field
+      systemPrompt: systemPrompt || '',
       createdBy: req.user?._id
     });
     
@@ -89,7 +90,7 @@ export const createCharacter = async (req: Request, res: Response) => {
 // Update character
 export const updateCharacter = async (req: Request, res: Response) => {
   try {
-    const { name, description, personality, image, category, tags, isActive } = req.body;
+    const { name, description, personality, avatar, category, traits, systemPrompt, isActive } = req.body;
     
     const character = await CharacterModel.findById(req.params.id);
     if (!character) {
@@ -99,9 +100,10 @@ export const updateCharacter = async (req: Request, res: Response) => {
     if (name) character.name = name;
     if (description) character.description = description;
     if (personality) character.personality = personality;
-    if (image) character.image = image;
+    if (avatar) character.image = avatar; // Map avatar to image field
     if (category) character.category = category;
-    if (tags) character.tags = tags;
+    if (traits) character.tags = traits; // Map traits to tags field
+    if (systemPrompt !== undefined) character.systemPrompt = systemPrompt;
     if (typeof isActive === 'boolean') character.isActive = isActive;
     
     await character.save();

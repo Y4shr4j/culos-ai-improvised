@@ -7,6 +7,11 @@ import { UserModel } from '../models/user';
 
 export const uploadVideo = async (req: Request, res: Response) => {
   try {
+    console.log('>>> Video upload started <<<');
+    console.log('File:', req.file ? 'Present' : 'Missing');
+    console.log('User:', req.user ? 'Authenticated' : 'Not authenticated');
+    console.log('Request body:', req.body);
+
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
@@ -18,11 +23,19 @@ export const uploadVideo = async (req: Request, res: Response) => {
     const { originalname, mimetype, buffer, size } = req.file;
     const { title, description, category, tags, isBlurred, blurIntensity, unlockPrice, duration } = req.body;
 
+    console.log('File details:', {
+      originalname,
+      mimetype,
+      size,
+      bufferLength: buffer.length
+    });
+
     // Validate video file type
     if (!mimetype.startsWith('video/')) {
       return res.status(400).json({ message: 'File must be a video' });
     }
 
+    console.log('Uploading to S3...');
     // Upload to S3 with videos folder
     const fileUrl = await uploadToS3({
       originalname,
@@ -30,6 +43,8 @@ export const uploadVideo = async (req: Request, res: Response) => {
       buffer,
       size
     }, 'videos');
+
+    console.log('S3 upload successful, URL:', fileUrl);
 
     // Create video record
     const video = new VideoModel({
@@ -48,11 +63,24 @@ export const uploadVideo = async (req: Request, res: Response) => {
     });
 
     await video.save();
+    console.log('Video saved to database with ID:', video._id);
     
     res.status(201).json(video);
   } catch (error) {
-    console.error('Video upload error:', error);
-    res.status(500).json({ message: 'Error uploading video' });
+    console.error('>>> Video upload ERROR <<<');
+    console.error('Error details:', error);
+    console.error('Error message:', (error as any)?.message);
+    console.error('Error code:', (error as any)?.Code);
+    console.error('Error status:', (error as any)?.$metadata?.httpStatusCode);
+    
+    // Provide more specific error messages
+    if ((error as any)?.Code === 'AccessDenied') {
+      res.status(500).json({ message: 'AWS S3 access denied. Check credentials and permissions.' });
+    } else if ((error as any)?.Code === 'NoSuchBucket') {
+      res.status(500).json({ message: 'AWS S3 bucket not found. Check bucket configuration.' });
+    } else {
+      res.status(500).json({ message: 'Error uploading video', error: (error as any)?.message || 'Unknown error' });
+    }
   }
 };
 

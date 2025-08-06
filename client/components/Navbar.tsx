@@ -58,7 +58,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, tokens, onLogout }) => {
       {/* Logo and Navigation */}
       <div className="flex items-center gap-4 md:gap-[277px]">
         <Link
-          to="/dashboard"
+          to="/"
           className="flex items-center gap-1 hover:opacity-80 transition-opacity"
         >
           <span className="text-culosai-gold font-norwester text-2xl md:text-[32px]">
@@ -74,7 +74,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, tokens, onLogout }) => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-20 justify-center">
           <Link
-            to="/ai-images"
+            to="/"
             className="text-culosai-gold font-norwester text-xl hover:opacity-80 transition-opacity"
           >
             AI Images
@@ -263,7 +263,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, tokens, onLogout }) => {
             {user ? (
               <>
                 <Link
-                  to="/ai-images"
+                  to="/dashboard"
                   className="text-culosai-gold font-norwester text-xl"
                 >
                   AI Images

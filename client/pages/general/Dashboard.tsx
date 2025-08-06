@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar";
 import { Link } from "react-router-dom";
-import { Copy, Languages, X, Lock, Unlock } from "lucide-react";
+import { Copy, Languages, X } from "lucide-react";
 import { get, post } from "../../src/utils/api";
-import ImageGallery from "../../components/ImageGallery";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { PayPalButtons } from "@paypal/react-paypal-js";
 import { OnApproveData, CreateOrderData } from "@paypal/paypal-js";
+import AIImageGallery from "./AIImageGallery";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
@@ -41,14 +41,8 @@ const Dashboard: React.FC = () => {
   const [user, setUser] = useState(null);
   const [tokens, setTokens] = useState<number | null>(null);
   const [isUserBoxOpen, setIsUserBoxOpen] = useState(false);
-  const [images, setImages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<any>(null);
-  const [showImagePreview, setShowImagePreview] = useState(false);
-  const [unlockingImageId, setUnlockingImageId] = useState<string | null>(null);
 
   const { logout, user: authUser, token, loading: authLoading } = useAuth();
 
@@ -79,28 +73,7 @@ const Dashboard: React.FC = () => {
     fetchUserData();
   }, [token, authUser, authLoading]);
 
-  // Fetch images on component mount
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        setLoading(true);
-        console.log('Fetching images...');
-        const response = await get<any>('/images');
-        console.log('Images data received:', response);
-        // Handle the response structure: { images: [...] }
-        const imagesArray = response.images || response || [];
-        console.log('Images array:', imagesArray);
-        setImages(imagesArray);
-      } catch (error) {
-        console.error('Error fetching images:', error);
-        setImages([]);
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchImages();
-  }, []);
 
   const handleLogout = async () => {
     try {
@@ -259,97 +232,7 @@ const Dashboard: React.FC = () => {
     }, 2000);
   };
 
-  const handleUnlockImage = async (imageId: string) => {
-    try {
-      console.log('Unlocking image:', imageId);
-      setUnlockingImageId(imageId);
-      
-      // Check if image is already unlocked
-      const image = images.find(img => img._id === imageId);
-      if (image && image.isUnlocked) {
-        console.log('Image is already unlocked');
-        setUnlockingImageId(null);
-        return;
-      }
-      
-      const response = await post(`/images/unlock/${imageId}`);
-      console.log('Unlock response:', response);
-      
-      // Update the image's unlocked status in the local state
-      setImages(prevImages =>
-        prevImages.map(img =>
-          img._id === imageId ? { 
-            ...img, 
-            isUnlocked: true, 
-            isBlurred: false,
-            unlockCount: (img.unlockCount || 0) + 1
-          } : img
-        )
-      );
-      
-      // Refresh tokens
-      const userData = await get<any>('/auth/me');
-      console.log('Updated user data after unlock:', userData);
-      setTokens(userData.tokens);
-    } catch (error: any) {
-      setUnlockingImageId(null);
-      console.error('Error unlocking image:', error);
-      
-      // Handle specific error cases
-      if (error.message && error.message.includes('already unlocked')) {
-        // If image is already unlocked, update the local state
-        setImages(prevImages =>
-          prevImages.map(img =>
-            img._id === imageId ? { 
-              ...img, 
-              isUnlocked: true, 
-              isBlurred: false
-            } : img
-          )
-        );
-        console.log('Image was already unlocked, updated local state');
-      } else if (error.message && error.message.includes('insufficient tokens')) {
-        // Handle insufficient tokens error
-        alert('You don\'t have enough tokens to unlock this image. Please purchase more tokens.');
-      } else {
-        // Show error message to user for other errors
-        alert('Failed to unlock image. Please try again.');
-      }
-    } finally {
-      setUnlockingImageId(null);
-    }
-  };
 
-  const handleImageClick = (image: any) => {
-    console.log('Image clicked:', image);
-    setSelectedImage(image);
-    setShowImagePreview(true);
-  };
-
-  const handleDownloadImage = async (imageUrl: string, fileName: string, imageId: string) => {
-    try {
-      // Use backend download endpoint to avoid CORS issues
-      const response = await fetch(`${API_BASE_URL}/api/images/download/${imageId}`);
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      } else {
-        // Fallback: open in new tab for manual download
-        window.open(imageUrl, '_blank');
-      }
-    } catch (error) {
-      console.error('Error downloading image:', error);
-      // Fallback: open in new tab for manual download
-      window.open(imageUrl, '_blank');
-    }
-  };
 
   const PaymentModal = ({ selectedPackage, onPaymentSuccess, onClose }: {
     selectedPackage: string | null;
@@ -508,71 +391,7 @@ const Dashboard: React.FC = () => {
     );
   };
 
-  const ImagePreviewModal = () => {
-    console.log('Rendering ImagePreviewModal with selectedImage:', selectedImage);
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-        <div className="bg-culosai-dark-grey border border-culosai-accent-gold rounded-lg p-4 w-full max-w-5xl h-[90vh] flex flex-col">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-4 flex-shrink-0">
-            <h3 className="text-culosai-cream font-norwester text-lg">
-              {selectedImage?.title || 'Image Preview'}
-            </h3>
-          <button
-            onClick={() => setShowImagePreview(false)}
-            className="text-culosai-accent-gold hover:text-culosai-cream transition-colors"
-          >
-            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        
-        {/* Image Container - Fixed height with scroll if needed */}
-        <div className="flex-1 overflow-auto flex items-center justify-center p-4">
-          <img
-            src={selectedImage?.url}
-            alt={selectedImage?.title}
-            className="max-w-full max-h-full object-contain"
-            style={{
-              filter: selectedImage?.isBlurred && !selectedImage?.isUnlocked 
-                ? 'blur(8px)' 
-                : 'none'
-            }}
-          />
-        </div>
-        
-        {/* Actions - Always visible at bottom */}
-        <div className="flex justify-center gap-4 mt-4 flex-shrink-0">
-                      <button
-              onClick={() => handleDownloadImage(selectedImage?.url, selectedImage?.title || 'image', selectedImage?._id)}
-              className="bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
-            >
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Download
-          </button>
-          
-          {selectedImage?.isBlurred && !selectedImage?.isUnlocked && (
-            <button
-              onClick={async () => {
-                await handleUnlockImage(selectedImage._id);
-                // Don't close the modal immediately, let the user see the unlocked image
-                // The modal will update automatically when the image state changes
-              }}
-              className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-              disabled={unlockingImageId === selectedImage._id}
-            >
-              <Unlock className="w-4 h-4" />
-              {unlockingImageId === selectedImage._id ? 'Unlocking...' : 'Unlock Image'}
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-  };
+
 
   // Show loading state while auth is initializing
   if (authLoading) {
@@ -775,117 +594,12 @@ const Dashboard: React.FC = () => {
               </div>
             </div> */}
 
-            {/* Image Gallery Section */}
+            {/* AI Image Gallery */}
             <div className="space-y-6">
-              {/* <div className="text-left">
-                <h2 className="text-culosai-cream font-norwester text-2xl md:text-3xl mb-4">
-                  Gallery Images
-                </h2>
-                <p className="text-culosai-accent-gold font-norwester text-sm md:text-base">
-                  Unlock images with tokens to remove blur effect
-                </p>
-              </div> */}
               
-              {loading ? (
-                <div className="text-left text-culosai-cream">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-culosai-accent-gold"></div>
-                  <p className="mt-4">Loading images...</p>
-                </div>
-              ) : !Array.isArray(images) || images.length === 0 ? (
-                <div className="text-left text-culosai-cream">
-                  <p className="text-lg">No images found</p>
-                  <p className="text-sm text-culosai-accent-gold">Upload some images from the admin panel</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  {Array.isArray(images) && images.map((image) => {
-                    console.log('Rendering image:', image);
-                    console.log('Image data:', {
-                      id: image._id,
-                      title: image.title,
-                      isBlurred: image.isBlurred,
-                      isUnlocked: image.isUnlocked,
-                      url: image.url,
-                      unlockPrice: image.unlockPrice
-                    });
-                    return (
-                    <div key={image._id} className={`relative group overflow-hidden rounded-lg shadow-lg bg-[#171717] ${(!image.isBlurred || image.isUnlocked) ? 'cursor-pointer' : 'cursor-default'}`} onClick={() => {
-                      // Only allow clicking if image is unlocked or not blurred
-                      if (!image.isBlurred || image.isUnlocked) {
-                        handleImageClick(image);
-                      }
-                    }}>
-                      <div 
-                        className="relative aspect-square overflow-hidden"
-                        style={{
-                          filter: image.isBlurred && !image.isUnlocked 
-                            ? `blur(8px)` // 80% blur effect
-                            : 'none',
-                          transition: 'filter 0.3s ease-in-out'
-                        }}
-                      >
-                        <img
-                          src={image.url}
-                          alt={image.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          loading="lazy"
-                          onError={(e) => {
-                            console.error('Image failed to load:', image.url);
-                            console.error('Image element:', e.currentTarget);
-                            console.error('Full image object:', image);
-                            e.currentTarget.style.display = 'none';
-                          }}
-                          onLoad={() => {
-                            console.log('Image loaded successfully:', image.url);
-                          }}
-                        />
-                        
-                        {image.isBlurred && !image.isUnlocked && (
-                          <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center p-4 text-center text-white">
-                            <Lock className="w-8 h-8 mb-2" />
-                            <p className="font-semibold text-sm">Unlock for {image.unlockPrice || 1} token{(image.unlockPrice || 1) !== 1 ? 's' : ''}</p>
-                            {user ? (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation(); // Prevent image click
-                                  handleUnlockImage(image._id);
-                                }}
-                                className="mt-2 bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-medium py-1 px-3 rounded-full text-xs transition-colors disabled:opacity-50"
-                                disabled={unlockingImageId === image._id}
-                              >
-                                {unlockingImageId === image._id ? 'Unlocking...' : 'Unlock Image'}
-                              </button>
-                            ) : (
-                              <Link
-                                to="/login"
-                                className="mt-2 bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-medium py-1 px-3 rounded-full text-xs transition-colors inline-block"
-                              >
-                                Login to Unlock
-                              </Link>
-                            )}
-                          </div>
-                        )}
-                        
-                        {image.isUnlocked && (
-                          <div className="absolute bottom-2 right-2 bg-green-500 text-white p-1 rounded-full">
-                            <Unlock className="w-4 h-4" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="p-3">
-                        <h3 className="text-culosai-cream font-norwester text-sm font-semibold truncate">
-                          {image.title}
-                        </h3>
-                        <p className="text-culosai-accent-gold font-norwester text-xs">
-                          {image.isBlurred ? 'Blurred' : 'Unlocked'}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                  })}
-                </div>
-              )}
+              
+              {/* Gallery Component */}
+              <AIImageGallery embedded={true} />
             </div>
           </div>
         </div>
@@ -1057,7 +771,7 @@ const Dashboard: React.FC = () => {
         onPaymentSuccess={handlePaymentSuccess}
         onClose={() => setShowPaymentModal(false)}
       />}
-      {showImagePreview && <ImagePreviewModal />}
+
     </div>
   );
 };

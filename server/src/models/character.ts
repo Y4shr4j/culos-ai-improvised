@@ -7,6 +7,7 @@ export interface ICharacter extends Document {
   image: string;
   category: string;
   tags: string[];
+  systemPrompt?: string;
   isActive: boolean;
   createdBy: mongoose.Types.ObjectId;
   createdAt: Date;
@@ -20,6 +21,7 @@ const CharacterSchema = new Schema<ICharacter>({
   image: { type: String, required: true },
   category: { type: String, required: true },
   tags: [{ type: String }],
+  systemPrompt: { type: String, default: '' },
   isActive: { type: Boolean, default: true },
   createdBy: { 
     type: Schema.Types.ObjectId, 

@@ -12,7 +12,10 @@ export interface UploadedFile {
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-2',
-  // Remove explicit credentials to use AWS CLI credentials
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+  },
 });
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET || 'culosai-content';
