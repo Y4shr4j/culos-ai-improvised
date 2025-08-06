@@ -1,13 +1,11 @@
-import { useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import MessageList from "./message-list";
-import MessageInput from "./message-input";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../src/utils/api";
 import { useToast } from "../../hooks/use-toast";
+import MessageList from "./message-list";
+import MessageInput from "./message-input";
+import { motion } from 'framer-motion';
 
-// Define types locally since shared/api has ES module issues
 interface Character {
   _id?: string;
   id: string;
@@ -24,7 +22,8 @@ interface ChatSession {
   id: string;
   characterId: string;
   userId: string;
-  createdAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface ChatAreaProps {
@@ -38,18 +37,26 @@ export default function ChatArea({
   sessionId,
   onSessionCreated,
 }: ChatAreaProps) {
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId);
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Create session mutation
   const createSessionMutation = useMutation({
     mutationFn: async (characterId: string): Promise<ChatSession> => {
       const response = await api.post("/chat/sessions", { characterId });
       return response.data;
     },
     onSuccess: (session) => {
+      setCurrentSessionId(session.id);
       onSessionCreated(session.id);
+      queryClient.invalidateQueries({ queryKey: ["/chat/sessions"] });
+      toast({
+        title: "Chat session created",
+        description: `Started chatting with ${selectedCharacter?.name}`,
+      });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Error creating session:", error);
       toast({
         title: "Error",
         description: "Failed to create chat session",
@@ -58,54 +65,104 @@ export default function ChatArea({
     },
   });
 
-  // Create session when character changes and no session exists
-  useEffect(() => {
-    if (selectedCharacter && !sessionId && !createSessionMutation.isPending) {
+  const handleStartChat = () => {
+    if (selectedCharacter) {
       createSessionMutation.mutate(selectedCharacter.id);
     }
-  }, [selectedCharacter, sessionId]);
+  };
 
   if (!selectedCharacter) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-800">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-white mb-2">
-            Select a Character
-          </h2>
-          <p className="text-gray-400">Choose an AI character to start chatting</p>
+      <div className="flex-1 flex items-center justify-center bg-[#171717]">
+        <div className="text-center p-6">
+          <div className="w-16 h-16 bg-[#FCEDBC]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-[#FCEDBC]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+          <h3 className="text-[#FCEDBC] font-norwester text-lg sm:text-xl mb-2">Select a Character</h3>
+          <p className="text-[#FCEDBC]/60 text-sm sm:text-base">Choose a character from the sidebar to start chatting</p>
         </div>
-      </div>
-    );
-  }
-
-  if (!sessionId) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-gray-800">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[#171717] font-norwester">
+    <div className="flex-1 flex flex-col bg-[#171717] min-h-0">
       {/* Chat Header */}
-      <div className="bg-[#171717] border-b border-[#FCEDBC]/20 p-4 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex items-center justify-between p-4 sm:p-6 border-b border-[#FCEDBC]/20 bg-[#2A2A2A]">
+        <div className="flex items-center gap-3 sm:gap-4">
           <img
             src={selectedCharacter.avatar}
             alt={selectedCharacter.name}
-            className="w-10 h-10 rounded-full object-cover"
+            className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover"
           />
-          <h2 className="font-norwester text-[#FCEDBC] text-lg">
-            {selectedCharacter.name}
-          </h2>
+          <div>
+            <h2 className="text-[#FCEDBC] font-norwester text-lg sm:text-xl font-semibold">
+              {selectedCharacter.name}
+            </h2>
+            <p className="text-[#FCEDBC]/60 text-xs sm:text-sm">
+              {selectedCharacter.description}
+            </p>
+          </div>
         </div>
-        <Button variant="ghost" size="icon" className="text-[#FCEDBC] hover:bg-[#FCEDBC]/10">
-          <Menu className="w-6 h-6" />
-        </Button>
+        
+        {/* Mobile Character Profile Button */}
+        <motion.button
+          className="lg:hidden p-2 bg-[#FCEDBC]/10 rounded-lg text-[#FCEDBC] hover:bg-[#FCEDBC]/20 transition-colors"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          title="View character profile"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </motion.button>
       </div>
-      <MessageList sessionId={sessionId} character={selectedCharacter} />
-      <MessageInput sessionId={sessionId} character={selectedCharacter} />
+
+      {/* Chat Content */}
+      <div className="flex-1 flex flex-col min-h-0">
+        {currentSessionId ? (
+          <>
+            <MessageList sessionId={currentSessionId} character={selectedCharacter} />
+            <MessageInput sessionId={currentSessionId} character={selectedCharacter} />
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center max-w-md">
+              <div className="w-20 h-20 bg-[#FCEDBC]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <img
+                  src={selectedCharacter.avatar}
+                  alt={selectedCharacter.name}
+                  className="w-12 h-12 rounded-lg object-cover"
+                />
+              </div>
+              <h3 className="text-[#FCEDBC] font-norwester text-xl sm:text-2xl mb-3">
+                Start chatting with {selectedCharacter.name}
+              </h3>
+              <p className="text-[#FCEDBC]/60 text-sm sm:text-base mb-6 leading-relaxed">
+                {selectedCharacter.personality}
+              </p>
+              <motion.button
+                onClick={handleStartChat}
+                disabled={createSessionMutation.isPending}
+                className="bg-[#FCEDBC] text-[#2A2A2A] font-norwester py-3 px-6 rounded-[25px] text-sm sm:text-base hover:bg-[#F8C679] transition-colors disabled:opacity-60 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {createSessionMutation.isPending ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#2A2A2A]"></div>
+                    Starting chat...
+                  </div>
+                ) : (
+                  "Start Chat"
+                )}
+              </motion.button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

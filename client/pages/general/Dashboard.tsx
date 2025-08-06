@@ -410,7 +410,7 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] from-[17%] to-[#513238] to-[25%] text-culosai-gold font-norwester text-xl relative overflow-hidden">
       {/* Animated background elements */}
       <motion.div
-        className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-[#FCEDBC]/10 to-[#CD8246]/10 rounded-full blur-xl"
+        className="absolute top-20 left-10 w-20 h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-gradient-to-r from-[#FCEDBC]/10 to-[#CD8246]/10 rounded-full blur-xl"
         animate={{
           x: [0, 30, 0],
           y: [0, -20, 0],
@@ -422,7 +422,7 @@ const Dashboard: React.FC = () => {
         }}
       />
       <motion.div
-        className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-[#CD8246]/10 to-[#FCEDBC]/10 rounded-full blur-xl"
+        className="absolute top-40 right-10 sm:right-20 w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gradient-to-r from-[#CD8246]/10 to-[#FCEDBC]/10 rounded-full blur-xl"
         animate={{
           x: [0, -25, 0],
           y: [0, 15, 0],
@@ -434,7 +434,7 @@ const Dashboard: React.FC = () => {
         }}
       />
       <motion.div
-        className="absolute bottom-40 left-1/4 w-20 h-20 bg-gradient-to-r from-[#FCEDBC]/8 to-[#CD8246]/8 rounded-full blur-xl"
+        className="absolute bottom-40 left-1/4 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-r from-[#FCEDBC]/8 to-[#CD8246]/8 rounded-full blur-xl"
         animate={{
           x: [0, 20, 0],
           y: [0, -10, 0],
@@ -450,33 +450,34 @@ const Dashboard: React.FC = () => {
 
       
             {/* Main Content */}
-      <main className="px-4 md:px-10 py-8 md:py-20">
+      <main className="px-4 sm:px-6 lg:px-10 py-6 sm:py-8 lg:py-20">
         <div className="max-w-6xl mx-auto">
           {/* Feature Cards */}
-          <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 mb-16 justify-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-16 justify-items-center">
             {/* Generate Images Card */}
-            <Link to="/aiimagegeneration" className="w-full lg:w-auto">
+            <Link to="/aiimagegeneration" className="w-full max-w-sm">
               <motion.div 
-                className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#813521] rounded-[20px] hover:bg-[#913721] transition-colors w-full lg:w-[320px]"
+                className="flex flex-col items-center gap-3 p-4 sm:p-6 lg:p-8 bg-[#813521] rounded-[20px] hover:bg-[#913721] transition-colors w-full"
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
               >
-                <h2 className="text-culosai-cream font-norwester text-2xl md:text-[32px] text-center">
+                <h2 className="text-culosai-cream font-norwester text-xl sm:text-2xl lg:text-[32px] text-center">
                   Generate Images
                 </h2>
-                <div className="flex items-center gap-4">
-                  <div className="px-6 py-2 rounded-[25px]" style={{ backgroundColor: '#FCEDBC' }}>
-                    <span className="font-norwester text-xl md:text-2xl" style={{ color: '#42100B' }}>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="px-4 sm:px-6 py-2 rounded-[25px]" style={{ backgroundColor: '#FCEDBC' }}>
+                    <span className="font-norwester text-lg sm:text-xl lg:text-2xl" style={{ color: '#42100B' }}>
                       generate
                     </span>
                   </div>
                   <svg
-                    width="37"
-                    height="31"
+                    width="30"
+                    height="25"
                     viewBox="0 0 37 31"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    className="sm:w-[37px] sm:h-[31px]"
                   >
                     <path
                       d="M36 27.1V23.797C36 23.124 35.7455 22.4759 35.2876 21.9827L30.7787 17.1259C29.2016 15.4271 26.6446 15.4271 25.0675 17.1259L24.4928 17.7449C23.4377 18.8814 21.6392 18.8814 20.5842 17.7449L15.971 12.7759C14.3939 11.0771 11.8369 11.0771 10.2598 12.7759L1.71237 21.9827C1.25447 22.4759 1 23.124 1 23.797V27.1C1 28.7016 2.20539 30 3.69231 30H33.3077C34.7946 30 36 28.7016 36 27.1Z"
@@ -500,28 +501,29 @@ const Dashboard: React.FC = () => {
             </Link>
 
             {/* Generate Videos Card */}
-            <Link to="/aivideogeneration" className="w-full lg:w-auto">
+            <Link to="/aivideogeneration" className="w-full max-w-sm">
               <motion.div 
-                className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#42100B] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full lg:w-[320px]"
+                className="flex flex-col items-center gap-3 p-4 sm:p-6 lg:p-8 bg-[#42100B] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full"
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
               >
-                <h2 className="text-culosai-cream font-norwester text-2xl md:text-[32px] text-center">
+                <h2 className="text-culosai-cream font-norwester text-xl sm:text-2xl lg:text-[32px] text-center">
                   Generate Videos
                 </h2>
-                <div className="flex items-center gap-4">
-                  <div className="px-6 py-2 rounded-[25px]" style={{ backgroundColor: '#FCEDBC' }}>
-                    <span className="font-norwester text-xl md:text-2xl" style={{ color: '#42100B' }}>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="px-4 sm:px-6 py-2 rounded-[25px]" style={{ backgroundColor: '#FCEDBC' }}>
+                    <span className="font-norwester text-lg sm:text-xl lg:text-2xl" style={{ color: '#42100B' }}>
                       generate
                     </span>
                   </div>
                   <svg
-                    width="41"
-                    height="27"
+                    width="32"
+                    height="22"
                     viewBox="0 0 41 27"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    className="sm:w-[41px] sm:h-[27px]"
                   >
                     <path
                       d="M27.8077 10.7222L37.005 1.98209C37.9257 1.10714 39.5 1.72682 39.5 2.96419V24.0358C39.5 25.2732 37.9257 25.8929 37.005 25.0179L27.8077 16.2778M5.88462 26H23.4231C25.8446 26 27.8077 24.1345 27.8077 21.8333V5.16667C27.8077 2.86548 25.8446 1 23.4231 1H5.88462C3.46306 1 1.5 2.86548 1.5 5.16667V21.8333C1.5 24.1345 3.46306 26 5.88462 26Z"
@@ -536,28 +538,29 @@ const Dashboard: React.FC = () => {
             </Link>
 
             {/* Characters Card */}
-            <Link to="/chat" className="w-full lg:w-auto">
+            <Link to="/chat" className="w-full max-w-sm sm:col-span-2 lg:col-span-1">
               <motion.div 
-                className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#463034] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full lg:w-[320px]"
+                className="flex flex-col items-center gap-3 p-4 sm:p-6 lg:p-8 bg-[#463034] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full"
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
               >
-                <h2 className="text-culosai-cream font-norwester text-2xl md:text-[32px] text-center">
+                <h2 className="text-culosai-cream font-norwester text-xl sm:text-2xl lg:text-[32px] text-center">
                   Characters
                 </h2>
-                <div className="flex items-center gap-4">
-                  <div className="px-6 py-2 rounded-[25px]" style={{ backgroundColor: '#FCEDBC' }}>
-                    <span className="font-norwester text-xl md:text-2xl" style={{ color: '#42100B' }}>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="px-4 sm:px-6 py-2 rounded-[25px]" style={{ backgroundColor: '#FCEDBC' }}>
+                    <span className="font-norwester text-lg sm:text-xl lg:text-2xl" style={{ color: '#42100B' }}>
                       generate
                     </span>
                   </div>
                   <svg
-                    width="37"
-                    height="29"
+                    width="30"
+                    height="24"
                     viewBox="0 0 37 29"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    className="sm:w-[37px] sm:h-[29px]"
                   >
                     <path
                       d="M28.9971 0.400391C30.0842 0.399948 31.0694 0.418928 31.9346 0.516602C32.7995 0.614244 33.5511 0.791116 34.1689 1.10742C34.789 1.4249 35.273 1.8825 35.6006 2.53711C35.927 3.18961 36.0954 4.03212 36.0986 5.11523L36.0996 17.1211C36.0996 18.3318 36.0277 19.5273 35.5098 20.5117C34.9876 21.504 34.0216 22.2668 32.2725 22.6348C31.0474 22.8924 29.636 22.7808 28.4014 22.7803L23.4316 22.7764H17.5039C16.8532 23.0916 14.4584 24.5222 12.1689 25.8887C11.0149 26.5774 9.88943 27.2486 9.0332 27.749C8.60544 27.999 8.24396 28.2064 7.97949 28.3525C7.8475 28.4255 7.73852 28.484 7.65723 28.5244C7.61676 28.5445 7.58182 28.5615 7.55371 28.5732C7.53976 28.5791 7.526 28.5839 7.51367 28.5879C7.50291 28.5914 7.48675 28.5964 7.46973 28.5977C7.16496 28.6198 6.9492 28.5019 6.80957 28.3008C6.67574 28.1078 6.61608 27.8451 6.5918 27.5791C6.56731 27.3107 6.57774 27.025 6.59375 26.7764C6.61012 26.5222 6.63179 26.3163 6.63184 26.1885L6.63477 22.7783C5.22404 22.8348 4.15504 22.6585 3.3457 22.2949C2.514 21.9212 1.96198 21.3554 1.59863 20.6621C1.23666 19.9713 1.06329 19.1572 0.979492 18.2891C0.895737 17.421 0.900787 16.4898 0.901367 15.5645L0.900391 6.31738C0.899846 4.46738 1.13451 3.02731 1.99512 2.0293C2.85774 1.02901 4.32709 0.495885 6.73145 0.401367H6.73535L28.9971 0.400391ZM23.6436 1.83008C17.6421 1.83043 11.6341 1.7668 5.63574 1.8291C4.75099 1.96893 4.11801 2.22583 3.66406 2.56152C3.21026 2.8972 2.9292 3.31747 2.75586 3.79395C2.58193 4.27219 2.51609 4.80873 2.49414 5.37695C2.47212 5.94739 2.4944 6.53712 2.49414 7.13184L2.49512 16.3525L2.48242 17.0654C2.47605 17.3054 2.46923 17.5461 2.46973 17.7861C2.47074 18.2668 2.49931 18.7396 2.60547 19.1836V19.1846C2.80715 20.0272 3.22843 20.5346 3.74707 20.8467C4.26992 21.1613 4.89981 21.282 5.52441 21.335C5.83626 21.3614 6.1448 21.3712 6.43555 21.3799C6.72473 21.3886 6.99923 21.3962 7.23828 21.4209C7.47595 21.4454 7.68985 21.4879 7.85449 21.5693C8.02363 21.653 8.14652 21.7816 8.18457 21.9746C8.22478 22.1784 8.22757 22.4061 8.22168 22.627C8.21563 22.8532 8.2009 23.0662 8.20215 23.2617L8.20312 26.4814L13.2539 23.543C14.0787 23.0548 14.644 22.6776 15.0928 22.3838C15.5405 22.0907 15.8781 21.8772 16.2412 21.7266C16.9696 21.4244 17.7913 21.3777 19.8145 21.3779L25.4238 21.3799L29.0332 21.3828C30.0788 21.3829 30.943 21.3606 31.6523 21.2637C32.3618 21.1668 32.9079 20.9969 33.3223 20.707C34.1436 20.1324 34.4884 19.0576 34.4902 16.9922L34.4912 14.2236C34.4923 11.2292 34.5481 8.23089 34.4844 5.24121C34.4661 4.37965 34.3456 3.74088 34.127 3.2666C33.9098 2.79572 33.5936 2.48195 33.1729 2.27051C32.7486 2.05742 32.2135 1.94583 31.5576 1.88867C30.9021 1.83157 30.1345 1.83003 29.2471 1.83008H23.6436Z"
@@ -586,74 +589,39 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Content Filters and Character Showcase */}
-          <div className="space-y-10">
+          <div className="space-y-8 sm:space-y-10">
             {/* Filter Buttons */}
             <div className="flex justify-start">
-              <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
                 {filters.map((filter, index) => (
                   <React.Fragment key={filter.id}>
                     <motion.button
                       onClick={() => handleFilterToggle(filter.id)}
-                      className={`px-6 py-2 rounded-xl font-norwester text-lg transition-colors ${
-                        filter.active
-                          ? "bg-[#F5EDD0] text-[#42100B]"
-                          : "bg-[#BDD8CD] text-[#42100B] hover:bg-[#F5EDD0]/80 hover:text-[#42100B]"
-                      }`}
-                      whileHover={{ scale: 1.05 }}
+                      className={`px-4 sm:px-6 py-2 rounded-xl font-norwester text-base sm:text-lg transition-colors min-h-[44px] flex items-center justify-center`}
+                      style={{
+                        backgroundColor: filter.active ? '#F5EDD0' : '#BDD8CD',
+                        color: '#42100B'
+                      }}
+                      whileHover={{ 
+                        scale: 1.05,
+                        backgroundColor: filter.active ? '#F5EDD0' : '#F5EDD0',
+                        opacity: 0.8
+                      }}
                       whileTap={{ scale: 0.95 }}
                       transition={{ duration: 0.12, ease: 'easeOut' }}
                     >
                       {filter.label}
                     </motion.button>
                     {index === 1 && (
-                      <span className="mx-2 text-culosai-cream text-xl font-bold">|</span>
+                      <span className="mx-1 sm:mx-2 text-culosai-cream text-lg sm:text-xl font-bold">|</span>
                     )}
                   </React.Fragment>
                 ))}
               </div>
             </div>
 
-            {/* Character Showcase
-            <div className="flex justify-start">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-14">
-                {characters.map((character) => (
-                  <div
-                    key={character.id}
-                    className="flex flex-col items-start gap-4"
-                  >
-                    <img
-                      src={character.image}
-                      alt={character.name}
-                      className="w-24 h-32 md:w-[120px] md:h-[158px] rounded-md object-cover cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => handleCharacterClick(character)}
-                    />
-                    <div className="space-y-2">
-                      <div>
-                        <h3 className="text-culosai-accent-gold font-norwester text-lg md:text-xl">
-                          {character.name}
-                        </h3>
-                        <p className="text-culosai-accent-gold font-norwester text-xs">
-                          {character.description}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <img
-                          src="https://cdn.builder.io/api/v1/image/assets/TEMP/b7afd1efe815ab60d76dcb130a792122a7df15ee?width=32"
-                          alt="User"
-                          className="w-4 h-4 rounded-full"
-                        />
-                        <span className="text-[#F8C679] font-norwester text-xs">
-                          {character.username}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div> */}
-
             {/* AI Image Gallery */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               
               
               {/* Gallery Component */}
@@ -664,10 +632,10 @@ const Dashboard: React.FC = () => {
       </main>
 
       {/* Token Purchasing Section */}
-      <section className="bg-gradient-to-b from-[#552934] to-[#2A2A2A] px-4 md:px-[217px] py-8 md:py-16">
-        <div className="flex flex-col items-center gap-8">
+      <section className="bg-gradient-to-b from-[#552934] to-[#2A2A2A] px-4 sm:px-6 lg:px-[217px] py-8 sm:py-12 lg:py-16">
+        <div className="flex flex-col items-center gap-6 sm:gap-8">
           {/* Title */}
-          <h2 className="text-center font-norwester text-2xl md:text-[40px] leading-normal">
+          <h2 className="text-center font-norwester text-xl sm:text-2xl lg:text-[40px] leading-normal">
             <span className="text-culosai-cream">Need some </span>
             <Link to="/general" className="w-full lg:w-auto">
 
@@ -677,30 +645,30 @@ const Dashboard: React.FC = () => {
           </h2>
 
           {/* Token Cards */}
-          <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-10 justify-items-center">
             {tokenPackages.map((pkg) => (
               <motion.button
                 key={pkg.id}
                 onClick={() => handleTokenPurchase(pkg.id)}
-                className="flex flex-col justify-center items-center gap-3 w-full max-w-[259px] px-8 py-4 rounded-[20px] border border-[#6D6D6D]/20 bg-gradient-to-b from-[#4A262F] to-[#382E30] shadow-[0px_6px_12px_0px_rgba(0,0,0,0.25)] hover:scale-105 transition-transform"
+                className="flex flex-col justify-center items-center gap-3 w-full max-w-[259px] px-6 sm:px-8 py-4 rounded-[20px] border border-[#6D6D6D]/20 bg-gradient-to-b from-[#4A262F] to-[#382E30] shadow-[0px_6px_12px_0px_rgba(0,0,0,0.25)] hover:scale-105 transition-transform min-h-[200px]"
                 whileHover={{ scale: 1.05, y: -4 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.2, ease: 'easeOut' }}
               >
-                <div className="text-[#F8C679] font-norwester text-xl text-right w-full">
+                <div className="text-[#F8C679] font-norwester text-lg sm:text-xl text-right w-full">
                   ${pkg.price}
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   <img
                     src={pkg.image}
                     alt={`${pkg.tokens} tokens`}
-                    className="w-[100px] h-[100px]"
+                    className="w-[80px] h-[80px] sm:w-[100px] sm:h-[100px]"
                   />
                   <div className="flex flex-col items-center">
-                    <div className="text-culosai-cream font-norwester text-[40px] leading-normal text-center">
+                    <div className="text-culosai-cream font-norwester text-2xl sm:text-3xl lg:text-[40px] leading-normal text-center">
                       {pkg.tokens}
                     </div>
-                    <div className="text-culosai-cream font-norwester text-2xl leading-normal text-center">
+                    <div className="text-culosai-cream font-norwester text-lg sm:text-xl lg:text-2xl leading-normal text-center">
                       tokens
                     </div>
                   </div>

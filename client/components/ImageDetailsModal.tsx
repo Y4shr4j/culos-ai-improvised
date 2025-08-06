@@ -27,19 +27,13 @@ interface ImageDetailsModalProps {
   onClose: () => void;
   onUnlock: (imageId: string) => Promise<void>;
   onRemix: (image: Image) => void;
-  user: any;
-  tokens: number | null;
-  unlockingImageId: string | null;
 }
 
 const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
   image,
   onClose,
   onUnlock,
-  onRemix,
-  user,
-  tokens,
-  unlockingImageId
+  onRemix
 }) => {
   const [promptCopied, setPromptCopied] = useState(false);
   const [similarImages, setSimilarImages] = useState<Image[]>([]);
@@ -98,9 +92,7 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading image:', error);
-      // Fallback: open in new tab
-      window.open(image.url, '_blank');
+      console.error("Failed to download image:", error);
     }
   };
 
@@ -110,196 +102,209 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
 
   const handleRemix = () => {
     onRemix(image);
+    onClose();
   };
 
-  // Convert category selections to tags for display
-  const categoryTags = image.categorySelections 
-    ? Object.entries(image.categorySelections).map(([category, value]) => `${category}: ${value}`)
-    : [];
-
-  // Combine tags from image and category selections
-  const allTags = [...(image.tags || []), ...categoryTags];
-
   return (
-    <motion.div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
+      onClick={onClose}
     >
-      <motion.div 
-        className="bg-[#171717] border border-culosai-accent-gold rounded-[20px] w-full max-w-[756px] h-auto md:h-[521px] flex flex-col md:flex-row overflow-hidden"
+      <motion.div
+        className="bg-[#171717] rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col lg:flex-row shadow-2xl"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Left side - Main Image */}
-        <div className="w-full md:w-[270px] h-[300px] md:h-full">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-culosai-cream hover:bg-black/70 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Image Section */}
+        <div className="w-full lg:w-1/2 h-64 sm:h-80 lg:h-full relative">
           <img
             src={image.url}
-            alt={image.title}
-            className="w-full h-full object-cover rounded-t-[20px] md:rounded-l-[20px] md:rounded-tr-none"
-            style={{
-              filter: image.isBlurred && !image.isUnlocked 
-                ? 'blur(8px)' 
-                : 'none'
-            }}
+            alt={image.title || 'AI Generated Image'}
+            className={`w-full h-full object-cover ${
+              image.isBlurred && !image.isUnlocked ? 'blur-md' : ''
+            }`}
           />
+          
+          {/* Overlay for locked images */}
+          {image.isBlurred && !image.isUnlocked && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <div className="text-center">
+                <Lock className="w-12 h-12 sm:w-16 sm:h-16 text-culosai-accent-gold mx-auto mb-4" />
+                <p className="text-culosai-cream font-norwester text-lg sm:text-xl">
+                  {image.unlockPrice} tokens to unlock
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Unlocked Badge */}
+          {!image.isBlurred || image.isUnlocked ? (
+            <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-norwester flex items-center gap-2">
+              <Unlock className="w-4 h-4" />
+              Unlocked
+            </div>
+          ) : null}
         </div>
 
-        {/* Right side - Content */}
-        <div className="flex-1 p-4 md:p-8 space-y-4 overflow-y-auto">
-          {/* Header section with character info and remix button */}
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-culosai-accent-gold flex items-center justify-center">
-                  <span className="text-culosai-dark-brown font-norwester text-lg">
-                    {image.uploadedBy?.name?.charAt(0) || 'U'}
-                  </span>
-                </div>
-                <h1 className="text-culosai-cream font-norwester text-xl">
-                  {image.uploadedBy?.name || 'Unknown User'}
-                </h1>
-              </div>
-              <div className="flex gap-2">
-                <motion.button
-                  onClick={handleRemix}
-                  className="px-6 py-2 bg-[#813521] rounded-[25px] text-culosai-accent-gold font-norwester text-sm hover:bg-[#913521] transition-colors"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.12, ease: 'easeOut' }}
-                >
-                  Remix
-                </motion.button>
-                <motion.button
-                  onClick={onClose}
-                  className="text-culosai-accent-gold hover:text-culosai-cream transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={{ duration: 0.12, ease: 'easeOut' }}
-                >
-                  <X size={20} />
-                </motion.button>
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div className="w-full h-px bg-gray-600/20"></div>
+        {/* Content Section */}
+        <div className="w-full lg:w-1/2 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          {/* Header */}
+          <div className="mb-6">
+            <h2 className="text-culosai-cream font-norwester text-xl sm:text-2xl lg:text-3xl mb-2">
+              {image.title || 'AI Generated Image'}
+            </h2>
+            {image.uploadedBy && (
+              <p className="text-culosai-gold/60 text-sm sm:text-base">
+                By {image.uploadedBy.name}
+              </p>
+            )}
           </div>
 
-          {/* Prompts Section */}
-          {image.prompt && (
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                    <span className="text-culosai-cream font-norwester text-sm">
-                      Prompts
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={handleCopyPrompt}
-                        className="flex items-center gap-1 text-culosai-accent-gold hover:opacity-80 transition-opacity"
-                      >
-                        <Copy size={16} />
-                        <span className="font-norwester text-sm">
-                          {promptCopied ? "Copied!" : "Copy prompts"}
-                        </span>
-                      </button>
-                      <button className="text-culosai-accent-gold hover:opacity-80 transition-opacity">
-                        <Languages size={20} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Prompt Text */}
-                <div className="w-full p-3 bg-[#2A2A2A] rounded-[10px]">
-                  <p className="text-gray-400 font-norwester text-xs leading-relaxed">
-                    {image.prompt}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Tags Section */}
-          {allTags.length > 0 && (
-            <div className="space-y-2 max-w-[291px]">
-              <div className="flex flex-wrap gap-2">
-                {allTags.map((tag, tagIndex) => (
-                  <div
-                    key={tagIndex}
-                    className="px-3 py-2 bg-[#813521]/22 rounded-[10px] text-[#F8C679] font-norwester text-xs"
-                  >
-                    {tag}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3 mb-6">
             <motion.button
-              onClick={handleDownload}
-              className="bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+              onClick={handleRemix}
+              className="flex items-center gap-2 px-4 py-3 bg-culosai-accent-gold text-culosai-dark-brown font-norwester rounded-lg hover:bg-culosai-accent-gold/80 transition-colors text-sm sm:text-base min-h-[44px]"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.12, ease: 'easeOut' }}
             >
-              <Download size={16} />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Remix
+            </motion.button>
+
+            <motion.button
+              onClick={handleDownload}
+              className="flex items-center gap-2 px-4 py-3 bg-culosai-dark-brown text-culosai-cream font-norwester rounded-lg hover:bg-culosai-dark-brown/80 transition-colors text-sm sm:text-base min-h-[44px]"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Download className="w-4 h-4" />
               Download
             </motion.button>
-            
+
             {image.isBlurred && !image.isUnlocked && (
               <motion.button
                 onClick={handleUnlock}
-                className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-                disabled={!user || unlockingImageId === image._id}
+                className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white font-norwester rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base min-h-[44px]"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.12, ease: 'easeOut' }}
               >
-                <Unlock size={16} />
-                {unlockingImageId === image._id ? 'Unlocking...' : 'Unlock Image'}
+                <Unlock className="w-4 h-4" />
+                Unlock ({image.unlockPrice} tokens)
               </motion.button>
             )}
           </div>
 
-          {/* Similar Images Section */}
-          <div className="space-y-3">
-            <h2 className="text-culosai-cream font-norwester text-base">
-              Similar images
-            </h2>
-            {loadingSimilar ? (
-              <div className="flex gap-4 overflow-x-auto">
-                {[...Array(3)].map((_, index) => (
-                  <div key={index} className="flex-shrink-0 w-[98px] h-[129px] bg-gray-600 rounded-md animate-pulse"></div>
+          {/* Prompt Section */}
+          {image.prompt && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl">Prompt</h3>
+                <div className="flex items-center gap-2">
+                  <motion.button
+                    onClick={handleCopyPrompt}
+                    className="flex items-center gap-1 text-culosai-accent-gold hover:opacity-80 transition-opacity text-sm"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Copy className="w-4 h-4" />
+                    {promptCopied ? "Copied!" : "Copy"}
+                  </motion.button>
+                  <Languages className="w-5 h-5 text-culosai-accent-gold" />
+                </div>
+              </div>
+              <div className="p-4 bg-[#2A2A2A] rounded-lg">
+                <p className="text-culosai-gold/80 text-sm sm:text-base leading-relaxed">
+                  {image.prompt}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Description */}
+          {image.description && (
+            <div className="mb-6">
+              <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl mb-3">Description</h3>
+              <p className="text-culosai-gold/70 text-sm sm:text-base leading-relaxed">
+                {image.description}
+              </p>
+            </div>
+          )}
+
+          {/* Tags */}
+          {image.tags && image.tags.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl mb-3">Tags</h3>
+              <div className="flex flex-wrap gap-2">
+                {image.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="bg-culosai-accent-gold/20 text-culosai-accent-gold text-sm px-3 py-1 rounded-full"
+                  >
+                    {tag}
+                  </span>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Category Selections */}
+          {image.categorySelections && Object.keys(image.categorySelections).length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl mb-3">Categories</h3>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(image.categorySelections).map(([key, value]) => (
+                  <span
+                    key={key}
+                    className="bg-culosai-dark-brown/50 text-culosai-cream text-sm px-3 py-1 rounded-full"
+                  >
+                    {key}: {value}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Similar Images */}
+          <div className="mb-6">
+            <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl mb-3">Similar Images</h3>
+            {loadingSimilar ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-culosai-accent-gold"></div>
+              </div>
             ) : similarImages.length > 0 ? (
-              <div className="flex gap-4 overflow-x-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {similarImages.map((similarImage) => (
-                  <div key={similarImage._id} className="flex-shrink-0">
+                  <div
+                    key={similarImage._id}
+                    className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                  >
                     <img
                       src={similarImage.url}
-                      alt={similarImage.title}
-                      className="w-[98px] h-[129px] object-cover rounded-md hover:opacity-80 transition-opacity cursor-pointer"
-                      style={{
-                        filter: similarImage.isBlurred && !similarImage.isUnlocked 
-                          ? 'blur(4px)' 
-                          : 'none'
-                      }}
+                      alt={similarImage.title || 'Similar Image'}
+                      className="w-full h-full object-cover"
                     />
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 text-sm">No similar images found</p>
+              <p className="text-culosai-gold/60 text-sm sm:text-base">No similar images found</p>
             )}
           </div>
         </div>

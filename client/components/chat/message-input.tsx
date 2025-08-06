@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Paperclip, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Send } from "lucide-react";
 import { api } from "../../src/utils/api";
+import { motion } from 'framer-motion';
 
-// Define types locally since shared/schema has ES module issues
 interface Character {
   _id?: string;
   id: string;
@@ -17,19 +15,14 @@ interface Character {
   systemPrompt: string;
 }
 
-interface ChatResponse {
-  message: Message;
-  session: ChatSession;
-}
-
 interface Message {
   _id?: string;
   id: string;
   sessionId: string;
-  userId: string;
   content: string;
   role: "user" | "assistant";
-  timestamp: Date;
+  timestamp: string;
+  userId: string;
 }
 
 interface ChatSession {
@@ -37,7 +30,13 @@ interface ChatSession {
   id: string;
   characterId: string;
   userId: string;
-  createdAt: Date;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ChatResponse {
+  message: Message;
+  session: ChatSession;
 }
 
 interface MessageInputProps {
@@ -58,44 +57,53 @@ export default function MessageInput({ sessionId, character }: MessageInputProps
       queryClient.invalidateQueries({ queryKey: [`/chat/sessions/${sessionId}/messages`] });
       setMessage("");
     },
+    onError: (error: any) => {
+      console.error("Error sending message:", error);
+    },
   });
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
-      sendMessageMutation.mutate(message);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (message.trim() && !sendMessageMutation.isPending) {
+      sendMessageMutation.mutate(message.trim());
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
     }
   };
 
   return (
-    <div className="p-6 bg-[#23201A]">
-      <p className="text-sm text-[#FCEDBC]/70 mb-2 font-norwester">Suggestion: Hi there! Ever traveled somewhere and just fell in love with it?</p>
-      <div className="relative">
-        <Textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Write a message..."
-          className="w-full bg-[#171717] rounded-lg pr-20 py-3 pl-4 text-[#FCEDBC] font-norwester resize-none focus:ring-2 focus:ring-[#FCEDBC] placeholder-[#FCEDBC]/40 border-none"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSendMessage();
-            }
-          }}
-        />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2">
-          <Button variant="ghost" size="icon" className="text-[#FCEDBC]/60 hover:text-[#FCEDBC]">
-            <Paperclip className="w-5 h-5" />
-          </Button>
-          <Button
-            onClick={handleSendMessage}
+    <div className="p-4 sm:p-6 border-t border-[#FCEDBC]/20 bg-[#2A2A2A]">
+      <form onSubmit={handleSubmit} className="flex gap-3 sm:gap-4">
+        <div className="flex-1 relative">
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder={`Message ${character.name}...`}
+            className="w-full p-3 sm:p-4 bg-[#171717] border border-[#FCEDBC]/20 rounded-lg text-[#FCEDBC] placeholder-[#FCEDBC]/50 font-norwester text-sm sm:text-base resize-none focus:outline-none focus:border-[#FCEDBC]/40 min-h-[44px] max-h-32"
+            rows={1}
             disabled={sendMessageMutation.isPending}
-            size="icon"
-            className="bg-[#CD8246] text-[#2A2A2A] rounded-full font-norwester hover:bg-[#FCEDBC] hover:text-[#2A2A2A] disabled:bg-[#FCEDBC]/40"
-          >
-            <Send className="w-5 h-5" />
-          </Button>
+          />
         </div>
-      </div>
+        <motion.button
+          type="submit"
+          disabled={!message.trim() || sendMessageMutation.isPending}
+          className="bg-[#FCEDBC] text-[#2A2A2A] p-3 sm:p-4 rounded-lg hover:bg-[#F8C679] transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center min-w-[44px] min-h-[44px]"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {sendMessageMutation.isPending ? (
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#2A2A2A]"></div>
+          ) : (
+            <Send className="w-5 h-5" />
+          )}
+        </motion.button>
+      </form>
     </div>
   );
 }
