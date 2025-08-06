@@ -11,6 +11,7 @@ import {
 import { Link } from "react-router-dom";
 import { api } from "../../src/utils/api";
 import { useAuth } from "../../src/contexts/AuthContext";
+import { motion } from 'framer-motion';
 
 interface AspectRatio {
   id: string;
@@ -264,19 +265,22 @@ export default function AIImageGeneration() {
             </button>
 
             {aspectRatioExpanded && (
-              <div className="flex flex-wrap gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {aspectRatios.map((ratio) => (
-                  <button
+                  <motion.button
                     key={ratio.id}
                     onClick={() => setSelectedAspectRatio(ratio.id)}
-                    className={`px-4 py-2 rounded-xl text-xs md:text-sm font-norwester transition-colors ${
+                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-norwester transition-colors ${
                       selectedAspectRatio === ratio.id
                         ? "bg-culosai-dark-brown/35 text-culosai-accent-gold"
                         : "bg-gray-600/30 text-gray-400 hover:bg-gray-600/50"
                     }`}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
                   >
                     {ratio.ratio}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             )}
@@ -314,7 +318,7 @@ export default function AIImageGeneration() {
                       </h4>
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                         {category.items.map((item) => (
-                          <button
+                          <motion.button
                             key={item._id}
                             onClick={() => {
                               setSelectedCategoryItems(prev => ({
@@ -327,6 +331,9 @@ export default function AIImageGeneration() {
                                 ? "bg-culosai-dark-brown/35 text-culosai-accent-gold"
                                 : "bg-gray-600/30 text-gray-400 hover:bg-gray-600/50"
                             }`}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.98 }}
+                            transition={{ duration: 0.2, ease: 'easeOut' }}
                           >
                             <span>{item.name}</span>
                             <div className="flex items-center gap-1">
@@ -345,7 +352,7 @@ export default function AIImageGeneration() {
                                 }`}
                               />
                             </div>
-                          </button>
+                          </motion.button>
                         ))}
                       </div>
                     </div>
@@ -358,13 +365,16 @@ export default function AIImageGeneration() {
 
         {/* Generate Button */}
         <div className="text-center">
-          <button
+          <motion.button
             onClick={handleGenerate}
             className="bg-culosai-light-cream text-culosai-brown px-8 md:px-12 py-3 md:py-4 rounded-[25px] text-xl md:text-2xl font-norwester hover:bg-culosai-cream transition-colors disabled:opacity-60"
             disabled={loading}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
           >
             {loading ? "Generating..." : "AI Generate"}
-          </button>
+          </motion.button>
         </div>
       </main>
     </div>

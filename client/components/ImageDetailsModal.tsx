@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Copy, Languages, X, Lock, Unlock, Download } from "lucide-react";
 import { get } from "../src/utils/api";
+import { motion } from 'framer-motion';
 
 interface Image {
   _id: string;
@@ -120,8 +121,20 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
   const allTags = [...(image.tags || []), ...categoryTags];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="bg-[#171717] border border-culosai-accent-gold rounded-[20px] w-full max-w-[756px] h-auto md:h-[521px] flex flex-col md:flex-row overflow-hidden">
+    <motion.div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+    >
+      <motion.div 
+        className="bg-[#171717] border border-culosai-accent-gold rounded-[20px] w-full max-w-[756px] h-auto md:h-[521px] flex flex-col md:flex-row overflow-hidden"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+      >
         {/* Left side - Main Image */}
         <div className="w-full md:w-[270px] h-[300px] md:h-full">
           <img
@@ -152,18 +165,24 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
                 </h1>
               </div>
               <div className="flex gap-2">
-                <button
+                <motion.button
                   onClick={handleRemix}
                   className="px-6 py-2 bg-[#813521] rounded-[25px] text-culosai-accent-gold font-norwester text-sm hover:bg-[#913521] transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.12, ease: 'easeOut' }}
                 >
                   Remix
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={onClose}
                   className="text-culosai-accent-gold hover:text-culosai-cream transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.12, ease: 'easeOut' }}
                 >
                   <X size={20} />
-                </button>
+                </motion.button>
               </div>
             </div>
 
@@ -225,23 +244,29 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3">
-            <button
+            <motion.button
               onClick={handleDownload}
               className="bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.12, ease: 'easeOut' }}
             >
               <Download size={16} />
               Download
-            </button>
+            </motion.button>
             
             {image.isBlurred && !image.isUnlocked && (
-              <button
+              <motion.button
                 onClick={handleUnlock}
                 className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
                 disabled={!user || unlockingImageId === image._id}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.12, ease: 'easeOut' }}
               >
                 <Unlock size={16} />
                 {unlockingImageId === image._id ? 'Unlocking...' : 'Unlock Image'}
-              </button>
+              </motion.button>
             )}
           </div>
 
@@ -278,8 +303,8 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

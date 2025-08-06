@@ -7,6 +7,7 @@ import { useAuth } from "../../src/contexts/AuthContext";
 import { PayPalButtons } from "@paypal/react-paypal-js";
 import { OnApproveData, CreateOrderData } from "@paypal/paypal-js";
 import AIImageGallery from "./AIImageGallery";
+import { motion } from 'framer-motion';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
@@ -406,7 +407,46 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-<div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] from-[17%] to-[#513238] to-[25%] text-culosai-gold font-norwester text-xl">      <Navbar user={user} tokens={tokens} onLogout={handleLogout} />
+    <div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] from-[17%] to-[#513238] to-[25%] text-culosai-gold font-norwester text-xl relative overflow-hidden">
+      {/* Animated background elements */}
+      <motion.div
+        className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-[#FCEDBC]/10 to-[#CD8246]/10 rounded-full blur-xl"
+        animate={{
+          x: [0, 30, 0],
+          y: [0, -20, 0],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+      <motion.div
+        className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-[#CD8246]/10 to-[#FCEDBC]/10 rounded-full blur-xl"
+        animate={{
+          x: [0, -25, 0],
+          y: [0, 15, 0],
+        }}
+        transition={{
+          duration: 25,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+      <motion.div
+        className="absolute bottom-40 left-1/4 w-20 h-20 bg-gradient-to-r from-[#FCEDBC]/8 to-[#CD8246]/8 rounded-full blur-xl"
+        animate={{
+          x: [0, 20, 0],
+          y: [0, -10, 0],
+        }}
+        transition={{
+          duration: 18,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      />
+      
+      <Navbar user={user} tokens={tokens} onLogout={handleLogout} />
 
       
             {/* Main Content */}
@@ -416,7 +456,12 @@ const Dashboard: React.FC = () => {
           <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8 mb-16 justify-center">
             {/* Generate Images Card */}
             <Link to="/aiimagegeneration" className="w-full lg:w-auto">
-              <div className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#813521] rounded-[20px] hover:bg-[#913721] transition-colors w-full lg:w-[320px]">
+              <motion.div 
+                className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#813521] rounded-[20px] hover:bg-[#913721] transition-colors w-full lg:w-[320px]"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+              >
                 <h2 className="text-culosai-cream font-norwester text-2xl md:text-[32px] text-center">
                   Generate Images
                 </h2>
@@ -451,12 +496,17 @@ const Dashboard: React.FC = () => {
                     />
                   </svg>
                 </div>
-              </div>
+              </motion.div>
             </Link>
 
             {/* Generate Videos Card */}
             <Link to="/aivideogeneration" className="w-full lg:w-auto">
-              <div className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#42100B] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full lg:w-[320px]">
+              <motion.div 
+                className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#42100B] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full lg:w-[320px]"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+              >
                 <h2 className="text-culosai-cream font-norwester text-2xl md:text-[32px] text-center">
                   Generate Videos
                 </h2>
@@ -482,12 +532,17 @@ const Dashboard: React.FC = () => {
                     />
                   </svg>
                 </div>
-              </div>
+              </motion.div>
             </Link>
 
             {/* Characters Card */}
             <Link to="/chat" className="w-full lg:w-auto">
-              <div className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#463034] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full lg:w-[320px]">
+              <motion.div 
+                className="flex flex-col items-center gap-3 p-6 md:p-8 bg-[#463034] rounded-[20px] cursor-pointer hover:bg-opacity-90 transition-colors w-full lg:w-[320px]"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+              >
                 <h2 className="text-culosai-cream font-norwester text-2xl md:text-[32px] text-center">
                   Characters
                 </h2>
@@ -524,7 +579,7 @@ const Dashboard: React.FC = () => {
                     />
                   </svg>
                 </div>
-              </div>
+              </motion.div>
             </Link>
 
             
@@ -537,16 +592,19 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center gap-4 flex-wrap">
                 {filters.map((filter, index) => (
                   <React.Fragment key={filter.id}>
-                    <button
+                    <motion.button
                       onClick={() => handleFilterToggle(filter.id)}
                       className={`px-6 py-2 rounded-xl font-norwester text-lg transition-colors ${
                         filter.active
                           ? "bg-[#F5EDD0] text-[#42100B]"
                           : "bg-[#BDD8CD] text-[#42100B] hover:bg-[#F5EDD0]/80 hover:text-[#42100B]"
                       }`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ duration: 0.12, ease: 'easeOut' }}
                     >
                       {filter.label}
-                    </button>
+                    </motion.button>
                     {index === 1 && (
                       <span className="mx-2 text-culosai-cream text-xl font-bold">|</span>
                     )}
@@ -621,10 +679,13 @@ const Dashboard: React.FC = () => {
           {/* Token Cards */}
           <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10">
             {tokenPackages.map((pkg) => (
-              <button
+              <motion.button
                 key={pkg.id}
                 onClick={() => handleTokenPurchase(pkg.id)}
                 className="flex flex-col justify-center items-center gap-3 w-full max-w-[259px] px-8 py-4 rounded-[20px] border border-[#6D6D6D]/20 bg-gradient-to-b from-[#4A262F] to-[#382E30] shadow-[0px_6px_12px_0px_rgba(0,0,0,0.25)] hover:scale-105 transition-transform"
+                whileHover={{ scale: 1.05, y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
               >
                 <div className="text-[#F8C679] font-norwester text-xl text-right w-full">
                   ${pkg.price}
@@ -644,7 +705,7 @@ const Dashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
