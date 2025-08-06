@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Paperclip, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { apiRequest } from "../../lib/queryClient";
+import { api } from "../../src/utils/api";
 
 // Define types locally since shared/schema has ES module issues
 interface Character {
@@ -26,6 +26,7 @@ interface Message {
   _id?: string;
   id: string;
   sessionId: string;
+  userId: string;
   content: string;
   role: "user" | "assistant";
   timestamp: Date;
@@ -35,6 +36,7 @@ interface ChatSession {
   _id?: string;
   id: string;
   characterId: string;
+  userId: string;
   createdAt: Date;
 }
 
@@ -49,11 +51,11 @@ export default function MessageInput({ sessionId, character }: MessageInputProps
 
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string): Promise<ChatResponse> => {
-      const res = await apiRequest("POST", `/api/chat/sessions/${sessionId}/messages`, { content });
-      return res.json();
+      const response = await api.post(`/chat/sessions/${sessionId}/messages`, { content });
+      return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/chat/sessions/${sessionId}/messages`] });
+      queryClient.invalidateQueries({ queryKey: [`/chat/sessions/${sessionId}/messages`] });
       setMessage("");
     },
   });

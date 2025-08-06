@@ -9,7 +9,8 @@
     "build": "esbuild src/app.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "build:railway": "npm ci && npm run build",
     "check": "tsc",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "migrate:chat": "node migrate-chat-to-user-specific.js"
   },
   "keywords": [],
   "author": "",

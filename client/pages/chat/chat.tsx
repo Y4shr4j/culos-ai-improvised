@@ -4,6 +4,9 @@ import CharacterSidebar from "../../components/chat/character-sidebar";
 import ChatArea from "../../components/chat/chat-area";
 import Navbar from "../../components/Navbar";
 import { useAuth } from "../../src/contexts/AuthContext"; 
+import { useNavigate } from "react-router-dom";
+import { api } from "../../src/utils/api";
+import { useToast } from "../../hooks/use-toast";
 
 // Define Character type locally since shared/api has ES module issues
 interface Character {
@@ -16,13 +19,12 @@ interface Character {
   avatar: string;
   systemPrompt: string;
 }
-import { apiRequest } from "../../lib/queryClient";
-import { useToast } from "../../hooks/use-toast";
 
 export default function ChatPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
     null
   );
@@ -30,17 +32,35 @@ export default function ChatPage() {
     Record<string, string>
   >({});
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/login');
+    }
+  }, [user, authLoading, navigate]);
+
   const handleLogout = () => {
     logout();
   };
 
+  // Only fetch data if user is authenticated
   const { data: characters, isLoading } = useQuery<Character[]>({
-    queryKey: ["/api/chat/characters"],
+    queryKey: ["/chat/characters"],
+    queryFn: async () => {
+      const response = await api.get("/chat/characters");
+      return response.data;
+    },
+    enabled: !!user, // Only run query if user is authenticated
   });
 
-  // Fetch existing sessions for all characters
+  // Fetch existing sessions for all characters (user-specific)
   const { data: sessions } = useQuery<{ id: string; characterId: string }[]>({
-    queryKey: ["/api/chat/sessions"],
+    queryKey: ["/chat/sessions"],
+    queryFn: async () => {
+      const response = await api.get("/chat/sessions");
+      return response.data;
+    },
+    enabled: !!user, // Only run query if user is authenticated
   });
 
   // Update character sessions when sessions data is available
@@ -55,11 +75,13 @@ export default function ChatPage() {
   }, [sessions]);
 
   const clearChatMutation = useMutation({
-    mutationFn: (sessionId: string) =>
-      apiRequest("DELETE", `/api/chat/sessions/${sessionId}/messages`),
+    mutationFn: async (sessionId: string) => {
+      const response = await api.delete(`/chat/sessions/${sessionId}/messages`);
+      return response.data;
+    },
     onSuccess: (_, sessionId) => {
       queryClient.invalidateQueries({
-        queryKey: [`/api/chat/sessions/${sessionId}/messages`],
+        queryKey: [`/chat/sessions/${sessionId}/messages`],
       });
       toast({
         title: "Chat Cleared",
@@ -85,12 +107,27 @@ export default function ChatPage() {
     ? characterSessions[selectedCharacter.id] || null
     : null;
 
-  if (isLoading) {
+  // Show loading while auth is checking
+  if (authLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-900">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
+      <div className="h-screen flex items-center justify-center bg-[#2A2A2A]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FCEDBC]"></div>
       </div>
     );
+  }
+
+  // Show loading while fetching data
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#2A2A2A]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FCEDBC]"></div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (!user) {
+    return null;
   }
 
   return (

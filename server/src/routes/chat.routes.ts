@@ -3,11 +3,20 @@ import { protect } from '../middleware/auth';
 import { storage } from '../services/chatStorage';
 import { generateChatResponse } from '../services/aiService';
 import { insertChatSessionSchema, insertMessageSchema, type ChatResponse } from "../services/chatStorage";
+import { IUser } from '../models/user';
+
+// Extend Express Request to include user
+interface AuthenticatedRequest extends express.Request {
+  user?: IUser;
+}
 
 const router = express.Router();
 
+// Apply authentication middleware to all chat routes
+router.use(protect);
+
 // Get all characters
-router.get('/characters', async (req, res) => {
+router.get('/characters', async (req: AuthenticatedRequest, res) => {
   try {
     const characters = await storage.getAllCharacters();
     res.json(characters);
@@ -18,7 +27,7 @@ router.get('/characters', async (req, res) => {
 });
 
 // Get character by ID
-router.get('/characters/:id', async (req, res) => {
+router.get('/characters/:id', async (req: AuthenticatedRequest, res) => {
   try {
     const character = await storage.getCharacter(req.params.id);
     if (!character) {
@@ -31,10 +40,44 @@ router.get('/characters/:id', async (req, res) => {
   }
 });
 
-// Find or create chat session for character
-router.post('/sessions', async (req, res) => {
+// Get user's sessions for all characters
+router.get('/sessions', async (req: AuthenticatedRequest, res) => {
   try {
-    const validatedData = insertChatSessionSchema.parse(req.body);
+    // Ensure user object exists and has _id
+    if (!req.user || !req.user._id) {
+      console.error("User object or _id missing:", req.user);
+      return res.status(401).json({ message: "User not authenticated properly" });
+    }
+
+    const userId = req.user._id.toString(); // Convert ObjectId to string
+    console.log("Fetching sessions for user:", userId);
+    
+    const sessions = await storage.getUserSessions(userId);
+    console.log("Found sessions:", sessions.length);
+    
+    res.json(sessions);
+  } catch (error) {
+    console.error("Error fetching user sessions:", error);
+    res.status(500).json({ message: "Failed to fetch user sessions" });
+  }
+});
+
+// Find or create chat session for character (user-specific)
+router.post('/sessions', async (req: AuthenticatedRequest, res) => {
+  try {
+    // Ensure user object exists and has _id
+    if (!req.user || !req.user._id) {
+      console.error("User object or _id missing:", req.user);
+      return res.status(401).json({ message: "User not authenticated properly" });
+    }
+
+    const userId = req.user._id.toString(); // Convert ObjectId to string
+    console.log("Creating session for user:", userId, "character:", req.body.characterId);
+    
+    const validatedData = insertChatSessionSchema.parse({
+      ...req.body,
+      userId
+    });
     
     // Verify character exists
     const character = await storage.getCharacter(validatedData.characterId);
@@ -42,7 +85,9 @@ router.post('/sessions', async (req, res) => {
       return res.status(404).json({ message: "Character not found" });
     }
 
-    const session = await storage.findOrCreateChatSession(validatedData.characterId);
+    const session = await storage.findOrCreateChatSession(validatedData.characterId, userId);
+    console.log("Created/found session:", session.id);
+    
     res.json(session);
   } catch (error) {
     console.error("Error finding/creating session:", error);
@@ -50,10 +95,21 @@ router.post('/sessions', async (req, res) => {
   }
 });
 
-// Get session messages
-router.get('/sessions/:id/messages', async (req, res) => {
+// Get session messages (user-specific)
+router.get('/sessions/:id/messages', async (req: AuthenticatedRequest, res) => {
   try {
-    const messages = await storage.getMessagesBySession(req.params.id);
+    // Ensure user object exists and has _id
+    if (!req.user || !req.user._id) {
+      console.error("User object or _id missing:", req.user);
+      return res.status(401).json({ message: "User not authenticated properly" });
+    }
+
+    const userId = req.user._id.toString(); // Convert ObjectId to string
+    console.log("Fetching messages for session:", req.params.id, "user:", userId);
+    
+    const messages = await storage.getMessagesBySession(req.params.id, userId);
+    console.log("Found messages:", messages.length);
+    
     res.json(messages);
   } catch (error) {
     console.error("Error fetching messages:", error);
@@ -61,18 +117,28 @@ router.get('/sessions/:id/messages', async (req, res) => {
   }
 });
 
-// Send message and get AI response
-router.post('/sessions/:id/messages', async (req, res) => {
+// Send message and get AI response (user-specific)
+router.post('/sessions/:id/messages', async (req: AuthenticatedRequest, res) => {
   try {
+    // Ensure user object exists and has _id
+    if (!req.user || !req.user._id) {
+      console.error("User object or _id missing:", req.user);
+      return res.status(401).json({ message: "User not authenticated properly" });
+    }
+
     const sessionId = req.params.id;
+    const userId = req.user._id.toString(); // Convert ObjectId to string
+    console.log("Processing message for session:", sessionId, "user:", userId);
+    
     const validatedData = insertMessageSchema.parse({
       ...req.body,
       sessionId,
+      userId,
       role: "user"
     });
 
-    // Get session and character
-    const session = await storage.getChatSession(sessionId);
+    // Get session and character (user-specific)
+    const session = await storage.getChatSession(sessionId, userId);
     if (!session) {
       return res.status(404).json({ message: "Session not found" });
     }
@@ -85,8 +151,8 @@ router.post('/sessions/:id/messages', async (req, res) => {
     // Save user message
     const userMessage = await storage.createMessage(validatedData);
 
-    // Get conversation history
-    const conversationHistory = await storage.getMessagesBySession(sessionId);
+    // Get conversation history (user-specific)
+    const conversationHistory = await storage.getMessagesBySession(sessionId, userId);
 
     // Generate AI response
     const aiResponseContent = await generateChatResponse(
@@ -98,6 +164,7 @@ router.post('/sessions/:id/messages', async (req, res) => {
     // Save AI response
     const aiMessage = await storage.createMessage({
       sessionId,
+      userId,
       content: aiResponseContent,
       role: "assistant"
     });
@@ -114,74 +181,95 @@ router.post('/sessions/:id/messages', async (req, res) => {
   }
 });
 
-// Clear session messages
-router.delete('/sessions/:id/messages', async (req, res) => {
+// Clear session messages (user-specific)
+router.delete('/sessions/:id/messages', async (req: AuthenticatedRequest, res) => {
   try {
-    await storage.clearSessionMessages(req.params.id);
-    res.json({ message: "Messages cleared successfully" });
+    // Ensure user object exists and has _id
+    if (!req.user || !req.user._id) {
+      console.error("User object or _id missing:", req.user);
+      return res.status(401).json({ message: "User not authenticated properly" });
+    }
+
+    const sessionId = req.params.id;
+    const userId = req.user._id.toString(); // Convert ObjectId to string
+    console.log("Clearing messages for session:", sessionId, "user:", userId);
+    
+    await storage.clearSessionMessages(sessionId, userId);
+    res.json({ message: "Session messages cleared" });
   } catch (error) {
-    console.error("Error clearing messages:", error);
-    res.status(500).json({ message: "Failed to clear messages" });
+    console.error("Error clearing session messages:", error);
+    res.status(500).json({ message: "Failed to clear session messages" });
   }
 });
 
 // Legacy routes for backward compatibility
-router.use(protect);
-
-// Start a new conversation with a character
-router.post('/start', async (req, res) => {
+router.post('/start', async (req: AuthenticatedRequest, res) => {
   try {
+    // Ensure user object exists and has _id
+    if (!req.user || !req.user._id) {
+      console.error("User object or _id missing:", req.user);
+      return res.status(401).json({ message: "User not authenticated properly" });
+    }
+
+    const userId = req.user._id.toString(); // Convert ObjectId to string
     const { characterId } = req.body;
-    const session = await storage.findOrCreateChatSession(characterId);
+    
+    const session = await storage.findOrCreateChatSession(characterId, userId);
     const character = await storage.getCharacter(characterId);
     
     if (!character) {
       return res.status(404).json({ message: "Character not found" });
     }
 
+    // Create greeting message
+    const greetingMessage = await storage.createMessage({
+      sessionId: session.id,
+      userId,
+      content: `Hello! I'm ${character.name}. ${character.personality}`,
+      role: "assistant"
+    });
+
     res.json({
-      conversationId: session.id,
-      character,
-      greeting: {
-        _id: 'greeting',
-        userId: 'system',
-        characterId: character.id,
-        content: `Hi! I'm ${character.name}. ${character.description}`,
-        role: 'assistant',
-        timestamp: new Date(),
-        conversationId: session.id
-      }
+      session,
+      message: greetingMessage
     });
   } catch (error) {
-    console.error('Error starting conversation:', error);
-    res.status(500).json({ message: "Failed to start conversation" });
+    console.error("Error starting chat:", error);
+    res.status(500).json({ message: "Failed to start chat" });
   }
 });
 
-// Send a message and get AI response
-router.post('/send', async (req, res) => {
+router.post('/send', async (req: AuthenticatedRequest, res) => {
   try {
-    const { characterId, message, conversationId } = req.body;
+    // Ensure user object exists and has _id
+    if (!req.user || !req.user._id) {
+      console.error("User object or _id missing:", req.user);
+      return res.status(401).json({ message: "User not authenticated properly" });
+    }
+
+    const userId = req.user._id.toString(); // Convert ObjectId to string
+    const { sessionId, message } = req.body;
     
-    const session = await storage.getChatSession(conversationId);
+    const session = await storage.getChatSession(sessionId, userId);
     if (!session) {
       return res.status(404).json({ message: "Session not found" });
     }
 
-    const character = await storage.getCharacter(characterId);
+    const character = await storage.getCharacter(session.characterId);
     if (!character) {
       return res.status(404).json({ message: "Character not found" });
     }
 
     // Save user message
     const userMessage = await storage.createMessage({
-      sessionId: conversationId,
+      sessionId,
+      userId,
       content: message,
       role: "user"
     });
 
     // Get conversation history
-    const conversationHistory = await storage.getMessagesBySession(conversationId);
+    const conversationHistory = await storage.getMessagesBySession(sessionId, userId);
 
     // Generate AI response
     const aiResponseContent = await generateChatResponse(
@@ -191,65 +279,69 @@ router.post('/send', async (req, res) => {
     );
 
     // Save AI response
-    const assistantMessage = await storage.createMessage({
-      sessionId: conversationId,
+    const aiMessage = await storage.createMessage({
+      sessionId,
+      userId,
       content: aiResponseContent,
       role: "assistant"
     });
 
     res.json({
       userMessage,
-      assistantMessage
+      aiMessage
     });
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error("Error sending message:", error);
     res.status(500).json({ message: "Failed to send message" });
   }
 });
 
-// Get conversation history
-router.get('/history/:characterId/:conversationId', async (req, res) => {
+router.get('/history/:characterId/:conversationId', async (req: AuthenticatedRequest, res) => {
   try {
-    const { conversationId } = req.params;
-    const messages = await storage.getMessagesBySession(conversationId);
-    res.json(messages);
-  } catch (error) {
-    console.error('Error fetching conversation history:', error);
-    res.status(500).json({ message: "Failed to fetch conversation history" });
-  }
-});
-
-// Get conversation suggestions for a character
-router.get('/suggestions/:characterId', async (req, res) => {
-  try {
-    const { characterId } = req.params;
-    const character = await storage.getCharacter(characterId);
-    
-    if (!character) {
-      return res.status(404).json({ message: "Character not found" });
+    // Ensure user object exists and has _id
+    if (!req.user || !req.user._id) {
+      console.error("User object or _id missing:", req.user);
+      return res.status(401).json({ message: "User not authenticated properly" });
     }
 
-    // Generate suggestions based on character personality
-    const suggestions = [
-      `Hi ${character.name}! How are you today?`,
-      `Tell me about yourself, ${character.name}`,
-      `What do you like to do for fun?`
-    ];
-
-    res.json({ suggestions });
+    const userId = req.user._id.toString(); // Convert ObjectId to string
+    const { conversationId } = req.params;
+    
+    const messages = await storage.getMessagesBySession(conversationId, userId);
+    res.json(messages);
   } catch (error) {
-    console.error('Error fetching suggestions:', error);
-    res.status(500).json({ message: "Failed to fetch suggestions" });
+    console.error("Error fetching history:", error);
+    res.status(500).json({ message: "Failed to fetch history" });
   }
 });
 
-// Get user's recent conversations
-router.get('/recent', async (req, res) => {
+router.get('/recent', async (req: AuthenticatedRequest, res) => {
   try {
-    // This would need to be implemented to get user's recent conversations
-    res.json([]);
+    // Ensure user object exists and has _id
+    if (!req.user || !req.user._id) {
+      console.error("User object or _id missing:", req.user);
+      return res.status(401).json({ message: "User not authenticated properly" });
+    }
+
+    const userId = req.user._id.toString(); // Convert ObjectId to string
+    
+    const sessions = await storage.getUserSessions(userId);
+    const characters = await storage.getAllCharacters();
+    
+    const recentConversations = sessions.map(session => {
+      const character = characters.find(c => c.id === session.characterId);
+      return {
+        sessionId: session.id,
+        characterId: session.characterId,
+        characterName: character?.name || 'Unknown',
+        characterAvatar: character?.avatar || '',
+        lastMessage: null // Could be enhanced to include last message
+      };
+    });
+    
+    res.json(recentConversations);
   } catch (error) {
-    console.error('Error fetching recent conversations:', error);
+    console.error("Error fetching recent conversations:", error);
     res.status(500).json({ message: "Failed to fetch recent conversations" });
   }
 });

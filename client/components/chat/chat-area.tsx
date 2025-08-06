@@ -4,7 +4,7 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MessageList from "./message-list";
 import MessageInput from "./message-input";
-import { apiRequest } from "../../lib/queryClient";
+import { api } from "../../src/utils/api";
 import { useToast } from "../../hooks/use-toast";
 
 // Define types locally since shared/api has ES module issues
@@ -23,6 +23,7 @@ interface ChatSession {
   _id?: string;
   id: string;
   characterId: string;
+  userId: string;
   createdAt: Date;
 }
 
@@ -42,8 +43,8 @@ export default function ChatArea({
   // Create session mutation
   const createSessionMutation = useMutation({
     mutationFn: async (characterId: string): Promise<ChatSession> => {
-      const res = await apiRequest("POST", "/api/chat/sessions", { characterId });
-      return res.json();
+      const response = await api.post("/chat/sessions", { characterId });
+      return response.data;
     },
     onSuccess: (session) => {
       onSessionCreated(session.id);

@@ -27,6 +27,7 @@ export interface ChatSession {
   _id?: string;
   id: string;
   characterId: string;
+  userId: string; // Add user ID for individual sessions
   createdAt: Date;
 }
 
@@ -34,6 +35,7 @@ export interface Message {
   _id?: string;
   id: string;
   sessionId: string;
+  userId: string; // Add user ID for individual messages
   content: string;
   role: "user" | "assistant";
   timestamp: Date;
@@ -57,10 +59,12 @@ export const insertCharacterSchema = z.object({
 
 export const insertChatSessionSchema = z.object({
   characterId: z.string(),
+  userId: z.string(), // Add user ID validation
 });
 
 export const insertMessageSchema = z.object({
   sessionId: z.string(),
+  userId: z.string(), // Add user ID validation
   content: z.string(),
   role: z.enum(["user", "assistant"]),
 });
@@ -82,14 +86,15 @@ export interface IStorage {
   createCharacter(character: InsertCharacter): Promise<Character>;
   
   // Chat Sessions
-  getChatSession(id: string): Promise<ChatSession | undefined>;
-  findOrCreateChatSession(characterId: string): Promise<ChatSession>;
+  getChatSession(id: string, userId: string): Promise<ChatSession | undefined>;
+  findOrCreateChatSession(characterId: string, userId: string): Promise<ChatSession>;
   createChatSession(session: InsertChatSession): Promise<ChatSession>;
+  getUserSessions(userId: string): Promise<ChatSession[]>;
   
   // Messages
-  getMessagesBySession(sessionId: string): Promise<Message[]>;
+  getMessagesBySession(sessionId: string, userId: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
-  clearSessionMessages(sessionId: string): Promise<void>;
+  clearSessionMessages(sessionId: string, userId: string): Promise<void>;
 }
 
 export class MongoStorage implements IStorage {
@@ -235,9 +240,9 @@ export class MongoStorage implements IStorage {
     }
   }
 
-  async getChatSession(id: string): Promise<ChatSession | undefined> {
+  async getChatSession(id: string, userId: string): Promise<ChatSession | undefined> {
     try {
-      const session = await ChatSessionModel.findOne({ id });
+      const session = await ChatSessionModel.findOne({ id, userId });
       return session ? session.toObject() as ChatSession : undefined;
     } catch (error) {
       console.error("Error fetching chat session:", error);
@@ -245,16 +250,17 @@ export class MongoStorage implements IStorage {
     }
   }
 
-  async findOrCreateChatSession(characterId: string): Promise<ChatSession> {
+  async findOrCreateChatSession(characterId: string, userId: string): Promise<ChatSession> {
     try {
       // Try to find existing session
-      let session = await ChatSessionModel.findOne({ characterId });
+      let session = await ChatSessionModel.findOne({ characterId, userId });
       
       if (!session) {
         // Create new session if none exists
         session = new ChatSessionModel({
           id: randomUUID(),
           characterId,
+          userId,
         });
         await session.save();
       }
@@ -281,9 +287,19 @@ export class MongoStorage implements IStorage {
     }
   }
 
-  async getMessagesBySession(sessionId: string): Promise<Message[]> {
+  async getUserSessions(userId: string): Promise<ChatSession[]> {
     try {
-      const messages = await ChatMessageModel.find({ sessionId }).sort({ timestamp: 1 });
+      const sessions = await ChatSessionModel.find({ userId });
+      return sessions.map(session => session.toObject() as ChatSession);
+    } catch (error) {
+      console.error("Error fetching user sessions:", error);
+      return [];
+    }
+  }
+
+  async getMessagesBySession(sessionId: string, userId: string): Promise<Message[]> {
+    try {
+      const messages = await ChatMessageModel.find({ sessionId, userId }).sort({ timestamp: 1 });
       return messages.map(msg => msg.toObject() as Message);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -307,9 +323,9 @@ export class MongoStorage implements IStorage {
     }
   }
 
-  async clearSessionMessages(sessionId: string): Promise<void> {
+  async clearSessionMessages(sessionId: string, userId: string): Promise<void> {
     try {
-      await ChatMessageModel.deleteMany({ sessionId });
+      await ChatMessageModel.deleteMany({ sessionId, userId });
       console.log(`Cleared messages for session: ${sessionId}`);
     } catch (error) {
       console.error("Error clearing session messages:", error);

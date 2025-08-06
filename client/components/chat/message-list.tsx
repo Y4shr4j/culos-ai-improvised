@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from "../../lib/queryClient";
+import { api } from "../../src/utils/api";
 
 // Define types locally since shared/schema has ES module issues
 interface Character {
@@ -17,6 +17,7 @@ interface Message {
   _id?: string;
   id: string;
   sessionId: string;
+  userId: string;
   content: string;
   role: "user" | "assistant";
   timestamp: Date;
@@ -29,7 +30,11 @@ interface MessageListProps {
 
 export default function MessageList({ sessionId, character }: MessageListProps) {
   const { data: messages, isLoading } = useQuery<Message[]>({
-    queryKey: [`/api/chat/sessions/${sessionId}/messages`],
+    queryKey: [`/chat/sessions/${sessionId}/messages`],
+    queryFn: async () => {
+      const response = await api.get(`/chat/sessions/${sessionId}/messages`);
+      return response.data;
+    },
     refetchInterval: 2000, // Poll for new messages
   });
 
