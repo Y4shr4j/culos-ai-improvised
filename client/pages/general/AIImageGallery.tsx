@@ -5,6 +5,7 @@ import { get } from "../../src/utils/api";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { Lock, Unlock, Search, Filter } from "lucide-react";
 import ImageDetailsModal from "../../components/ImageDetailsModal";
+import { motion } from 'framer-motion';
 
 interface Image {
   _id: string;
@@ -202,10 +203,13 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {images.map((image) => (
-              <div 
+              <motion.div
                 key={image._id} 
                 className={`relative group overflow-hidden rounded-lg shadow-lg bg-[#171717] ${(!image.isBlurred || image.isUnlocked) ? 'cursor-pointer' : 'cursor-default'}`} 
                 onClick={() => handleImageClick(image)}
+                whileHover={{ scale: 1.04, boxShadow: '0 8px 32px 0 rgba(252,237,188,0.10)' }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.16, ease: 'easeOut' }}
               >
                 <div 
                   className="relative aspect-square overflow-hidden"
@@ -265,7 +269,7 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
                     </span>
                   )}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
@@ -453,10 +457,13 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {images.map((image) => (
-                  <div 
+                  <motion.div
                     key={image._id} 
                     className={`relative group overflow-hidden rounded-lg shadow-lg bg-[#171717] ${(!image.isBlurred || image.isUnlocked) ? 'cursor-pointer' : 'cursor-default'}`} 
                     onClick={() => handleImageClick(image)}
+                    whileHover={{ scale: 1.04, boxShadow: '0 8px 32px 0 rgba(252,237,188,0.10)' }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.16, ease: 'easeOut' }}
                   >
                     <div 
                       className="relative aspect-square overflow-hidden"
@@ -516,7 +523,7 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
                         </span>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
