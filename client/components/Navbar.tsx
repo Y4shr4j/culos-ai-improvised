@@ -262,15 +262,17 @@ const Navbar: React.FC<NavbarProps> = ({ user, tokens, onLogout }) => {
           {/* Mobile Menu Button */}
           <button
             id="mobile-menu-btn"
-            className="lg:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="lg:hidden p-2 min-w-[44px] min-h-[44px] flex items-center justify-center z-50"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle mobile menu"
+            style={{ background: 'none', border: 'none' }}
           >
-            <div className="w-6 h-5 relative flex flex-col justify-between">
-              <span className={`w-full h-0.5 bg-culosai-accent-gold transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
-              <span className={`w-full h-0.5 bg-culosai-accent-gold transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
-              <span className={`w-full h-0.5 bg-culosai-accent-gold transition-transform duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
-            </div>
+            {/* Standard Hamburger Icon */}
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FCEDBC" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7">
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="18" x2="20" y2="18" />
+            </svg>
           </button>
         </div>
       </div>

@@ -7,6 +7,7 @@ import { useAuth } from "../../src/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../src/utils/api";
 import { useToast } from "../../hooks/use-toast";
+import { Menu } from "lucide-react";
 
 // Define Character type locally since shared/api has ES module issues
 interface Character {
@@ -31,6 +32,7 @@ export default function ChatPage() {
   const [characterSessions, setCharacterSessions] = useState<
     Record<string, string>
   >({});
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -134,11 +136,30 @@ export default function ChatPage() {
     <div className="h-screen bg-[#2A2A2A] text-[#FCEDBC] font-norwester flex flex-col overflow-hidden" style={{ margin: 0, padding: 0 }}>
       <Navbar user={user} tokens={user?.tokens || 0} onLogout={handleLogout} />
       <div className="flex flex-1 min-h-0">
-        {/* Mobile Menu Overlay */}
-        <div className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" style={{ display: 'none' }}></div>
-        
-        {/* Character Sidebar - Mobile Responsive */}
-        <div className="w-full sm:w-80 lg:w-96 bg-[#2A2A2A] border-r border-[#FCEDBC]/20 flex-shrink-0 z-50">
+        {/* Character Sidebar Overlay for Mobile */}
+        {isSidebarOpen && (
+          <div className="fixed inset-0 z-50 flex">
+            <div className="w-4/5 max-w-xs bg-[#2A2A2A] border-r border-[#FCEDBC]/20 h-full">
+              <CharacterSidebar
+                characters={characters || []}
+                selectedCharacter={selectedCharacter}
+                characterSessions={characterSessions}
+                onCharacterSelect={(character) => {
+                  setSelectedCharacter(character);
+                  setIsSidebarOpen(false);
+                }}
+                onClearChat={() => {
+                  if (selectedCharacter && characterSessions[selectedCharacter.id]) {
+                    clearChatMutation.mutate(characterSessions[selectedCharacter.id]);
+                  }
+                }}
+              />
+            </div>
+            <div className="flex-1 bg-black/40" onClick={() => setIsSidebarOpen(false)} />
+          </div>
+        )}
+        {/* Character Sidebar - Desktop Only */}
+        <div className="hidden lg:block w-96 bg-[#2A2A2A] border-r border-[#FCEDBC]/20 flex-shrink-0 z-50">
           <CharacterSidebar
             characters={characters || []}
             selectedCharacter={selectedCharacter}
@@ -153,9 +174,21 @@ export default function ChatPage() {
             }}
           />
         </div>
-
         {/* Chat Area - Responsive */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 relative">
+          {/* Mobile: Show Characters Button */}
+          <div className="lg:hidden p-2 border-b border-[#FCEDBC]/10 bg-[#2A2A2A] flex items-center">
+            <button
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#171717] text-[#FCEDBC] font-norwester text-base min-h-[44px]"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu className="w-5 h-5" />
+              Characters
+            </button>
+            {selectedCharacter && (
+              <span className="ml-4 text-[#FCEDBC] font-norwester text-base truncate">{selectedCharacter.name}</span>
+            )}
+          </div>
           <ChatArea
             selectedCharacter={selectedCharacter}
             sessionId={currentSessionId}
@@ -169,7 +202,6 @@ export default function ChatPage() {
             }}
           />
         </div>
-
         {/* Right Sidebar for Character Profile - Hidden on mobile */}
         <div className="hidden lg:block w-80 bg-[#2A2A2A] p-4 flex-shrink-0">
           {selectedCharacter && (
