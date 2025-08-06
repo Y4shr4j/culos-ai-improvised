@@ -548,7 +548,7 @@ const Dashboard: React.FC = () => {
                       {filter.label}
                     </button>
                     {index === 1 && (
-                      <div className="w-1 h-6 bg-culosai-cream"></div>
+                      <span className="mx-2 text-culosai-cream text-xl font-bold">|</span>
                     )}
                   </React.Fragment>
                 ))}
