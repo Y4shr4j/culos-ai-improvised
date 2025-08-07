@@ -82,8 +82,15 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       return process.env.OAUTH_CALLBACK_URL;
     }
     
+    // Check if we're in production environment (Railway sets RAILWAY_ENVIRONMENT)
+    const isProduction = process.env.NODE_ENV === 'production' || 
+                        process.env.RAILWAY_ENVIRONMENT === 'production' ||
+                        process.env.RAILWAY_ENVIRONMENT === 'main' ||
+                        process.env.RAILWAY_STATIC_URL ||
+                        process.env.RAILWAY_PUBLIC_DOMAIN;
+    
     // For production, use the Railway URL
-    if (process.env.NODE_ENV === 'production') {
+    if (isProduction) {
       const productionUrl = `https://culosai-production.up.railway.app/auth/google/callback`;
       console.log('Using production callback URL:', productionUrl);
       return productionUrl;
@@ -140,8 +147,15 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
       return facebookUrl;
     }
     
+    // Check if we're in production environment (Railway sets RAILWAY_ENVIRONMENT)
+    const isProduction = process.env.NODE_ENV === 'production' || 
+                        process.env.RAILWAY_ENVIRONMENT === 'production' ||
+                        process.env.RAILWAY_ENVIRONMENT === 'main' ||
+                        process.env.RAILWAY_STATIC_URL ||
+                        process.env.RAILWAY_PUBLIC_DOMAIN;
+    
     // For production, use the Railway URL
-    if (process.env.NODE_ENV === 'production') {
+    if (isProduction) {
       const productionUrl = `https://culosai-production.up.railway.app/auth/facebook/callback`;
       console.log('Using production Facebook callback URL:', productionUrl);
       return productionUrl;
