@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../src/utils/api";
 import { motion } from 'framer-motion';
+import React from "react"; // Added missing import
 
 interface Character {
   _id?: string;
@@ -29,14 +30,23 @@ interface MessageListProps {
 }
 
 export default function MessageList({ sessionId, character }: MessageListProps) {
-  const { data: messages, isLoading } = useQuery<Message[]>({
+  const { data: messages, isLoading, refetch } = useQuery<Message[]>({
     queryKey: [`/chat/sessions/${sessionId}/messages`],
     queryFn: async () => {
       const response = await api.get(`/chat/sessions/${sessionId}/messages`);
       return response.data;
     },
     refetchInterval: 2000,
+    staleTime: 0, // Always consider data stale to ensure fresh data
+    gcTime: 0, // Don't cache this data
   });
+
+  // Refetch when session changes
+  React.useEffect(() => {
+    if (sessionId) {
+      refetch();
+    }
+  }, [sessionId, refetch]);
 
   if (isLoading) {
     return (

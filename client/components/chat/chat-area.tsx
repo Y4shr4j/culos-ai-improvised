@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../src/utils/api";
 import { useToast } from "../../hooks/use-toast";
@@ -40,6 +40,18 @@ export default function ChatArea({
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  // Update currentSessionId when sessionId prop changes
+  useEffect(() => {
+    setCurrentSessionId(sessionId);
+  }, [sessionId]);
+
+  // Clear session when character changes
+  useEffect(() => {
+    if (selectedCharacter) {
+      setCurrentSessionId(sessionId);
+    }
+  }, [selectedCharacter?.id, sessionId]);
 
   const createSessionMutation = useMutation({
     mutationFn: async (characterId: string): Promise<ChatSession> => {
@@ -124,8 +136,16 @@ export default function ChatArea({
       <div className="flex-1 flex flex-col min-h-0">
         {currentSessionId ? (
           <>
-            <MessageList sessionId={currentSessionId} character={selectedCharacter} />
-            <MessageInput sessionId={currentSessionId} character={selectedCharacter} />
+            <MessageList 
+              key={`${selectedCharacter.id}-${currentSessionId}`} 
+              sessionId={currentSessionId} 
+              character={selectedCharacter} 
+            />
+            <MessageInput 
+              key={`${selectedCharacter.id}-${currentSessionId}-input`} 
+              sessionId={currentSessionId} 
+              character={selectedCharacter} 
+            />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center p-6">

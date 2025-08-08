@@ -56,7 +56,7 @@ export default function ChatPage() {
   });
 
   // Fetch existing sessions for all characters (user-specific)
-  const { data: sessions } = useQuery<{ id: string; characterId: string }[]>({
+  const { data: sessions, refetch: refetchSessions } = useQuery<{ id: string; characterId: string }[]>({
     queryKey: ["/chat/sessions"],
     queryFn: async () => {
       const response = await api.get("/chat/sessions");
@@ -75,6 +75,13 @@ export default function ChatPage() {
       setCharacterSessions(prev => ({ ...prev, ...sessionMap }));
     }
   }, [sessions]);
+
+  // Set default character when characters load
+  useEffect(() => {
+    if (characters && characters.length > 0 && !selectedCharacter) {
+      setSelectedCharacter(characters[0]);
+    }
+  }, [characters, selectedCharacter]);
 
   const clearChatMutation = useMutation({
     mutationFn: async (sessionId: string) => {
@@ -99,10 +106,18 @@ export default function ChatPage() {
     },
   });
 
-  // Set default character when characters load
-  if (characters && characters.length > 0 && !selectedCharacter) {
-    setSelectedCharacter(characters[0]);
-  }
+  // Handle character selection
+  const handleCharacterSelect = (character: Character) => {
+    setSelectedCharacter(character);
+    setIsSidebarOpen(false);
+    
+    // Invalidate queries for the new character to ensure fresh data
+    if (characterSessions[character.id]) {
+      queryClient.invalidateQueries({
+        queryKey: [`/chat/sessions/${characterSessions[character.id]}/messages`],
+      });
+    }
+  };
 
   // Get current session ID for selected character
   const currentSessionId = selectedCharacter
@@ -144,10 +159,7 @@ export default function ChatPage() {
                 characters={characters || []}
                 selectedCharacter={selectedCharacter}
                 characterSessions={characterSessions}
-                onCharacterSelect={(character) => {
-                  setSelectedCharacter(character);
-                  setIsSidebarOpen(false);
-                }}
+                onCharacterSelect={handleCharacterSelect}
                 onClearChat={() => {
                   if (selectedCharacter && characterSessions[selectedCharacter.id]) {
                     clearChatMutation.mutate(characterSessions[selectedCharacter.id]);
@@ -164,9 +176,7 @@ export default function ChatPage() {
             characters={characters || []}
             selectedCharacter={selectedCharacter}
             characterSessions={characterSessions}
-            onCharacterSelect={(character) => {
-              setSelectedCharacter(character);
-            }}
+            onCharacterSelect={handleCharacterSelect}
             onClearChat={() => {
               if (selectedCharacter && characterSessions[selectedCharacter.id]) {
                 clearChatMutation.mutate(characterSessions[selectedCharacter.id]);
@@ -190,6 +200,7 @@ export default function ChatPage() {
             )}
           </div>
           <ChatArea
+            key={selectedCharacter?.id} // Force re-render when character changes
             selectedCharacter={selectedCharacter}
             sessionId={currentSessionId}
             onSessionCreated={(sessionId) => {
@@ -198,6 +209,8 @@ export default function ChatPage() {
                   ...prev,
                   [selectedCharacter.id]: sessionId,
                 }));
+                // Refetch sessions to update the list
+                refetchSessions();
               }
             }}
           />
