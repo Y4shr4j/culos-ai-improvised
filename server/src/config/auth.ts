@@ -76,10 +76,26 @@ console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? '✅ SET
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   // Determine the correct callback URL based on environment
   const getCallbackURL = () => {
+    // Debug logging
+    console.log('🔍 Environment Debug Info:');
+    console.log('  NODE_ENV:', process.env.NODE_ENV);
+    console.log('  RAILWAY_ENVIRONMENT:', process.env.RAILWAY_ENVIRONMENT);
+    console.log('  RAILWAY_STATIC_URL:', process.env.RAILWAY_STATIC_URL);
+    console.log('  RAILWAY_PUBLIC_DOMAIN:', process.env.RAILWAY_PUBLIC_DOMAIN);
+    console.log('  HOSTNAME:', process.env.HOSTNAME);
+    console.log('  OAUTH_CALLBACK_URL:', process.env.OAUTH_CALLBACK_URL);
+    
     // If OAUTH_CALLBACK_URL is explicitly set, use it
     if (process.env.OAUTH_CALLBACK_URL) {
       console.log('Using explicit OAUTH_CALLBACK_URL:', process.env.OAUTH_CALLBACK_URL);
       return process.env.OAUTH_CALLBACK_URL;
+    }
+    
+    // If SERVER_URL is set, use it as base
+    if (process.env.SERVER_URL) {
+      const serverUrl = `${process.env.SERVER_URL}/auth/google/callback`;
+      console.log('Using SERVER_URL for callback:', serverUrl);
+      return serverUrl;
     }
     
     // Check if we're in production environment (Railway sets RAILWAY_ENVIRONMENT)
@@ -87,7 +103,12 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                         process.env.RAILWAY_ENVIRONMENT === 'production' ||
                         process.env.RAILWAY_ENVIRONMENT === 'main' ||
                         process.env.RAILWAY_STATIC_URL ||
-                        process.env.RAILWAY_PUBLIC_DOMAIN;
+                        process.env.RAILWAY_PUBLIC_DOMAIN ||
+                        process.env.RAILWAY_PROJECT_ID ||
+                        process.env.RAILWAY_SERVICE_ID ||
+                        process.env.RAILWAY_DEPLOYMENT_ID ||
+                        process.env.HOSTNAME?.includes('railway') ||
+                        process.env.HOSTNAME?.includes('up.railway.app');
     
     // For production, use the Railway URL
     if (isProduction) {
@@ -96,8 +117,9 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       return productionUrl;
     }
     
-    // For development, use localhost
-    const devUrl = "http://localhost:5000/auth/google/callback";
+    // For development, use dynamic port detection
+    const serverPort = process.env.PORT || 5000;
+    const devUrl = `http://localhost:${serverPort}/auth/google/callback`;
     console.log('Using development callback URL:', devUrl);
     return devUrl;
   };
@@ -147,12 +169,24 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
       return facebookUrl;
     }
     
+    // If SERVER_URL is set, use it as base
+    if (process.env.SERVER_URL) {
+      const serverUrl = `${process.env.SERVER_URL}/auth/facebook/callback`;
+      console.log('Using SERVER_URL for Facebook callback:', serverUrl);
+      return serverUrl;
+    }
+    
     // Check if we're in production environment (Railway sets RAILWAY_ENVIRONMENT)
     const isProduction = process.env.NODE_ENV === 'production' || 
                         process.env.RAILWAY_ENVIRONMENT === 'production' ||
                         process.env.RAILWAY_ENVIRONMENT === 'main' ||
                         process.env.RAILWAY_STATIC_URL ||
-                        process.env.RAILWAY_PUBLIC_DOMAIN;
+                        process.env.RAILWAY_PUBLIC_DOMAIN ||
+                        process.env.RAILWAY_PROJECT_ID ||
+                        process.env.RAILWAY_SERVICE_ID ||
+                        process.env.RAILWAY_DEPLOYMENT_ID ||
+                        process.env.HOSTNAME?.includes('railway') ||
+                        process.env.HOSTNAME?.includes('up.railway.app');
     
     // For production, use the Railway URL
     if (isProduction) {
@@ -161,8 +195,9 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
       return productionUrl;
     }
     
-    // For development, use localhost
-    const devUrl = "http://localhost:5000/auth/facebook/callback";
+    // For development, use dynamic port detection
+    const serverPort = process.env.PORT || 5000;
+    const devUrl = `http://localhost:${serverPort}/auth/facebook/callback`;
     console.log('Using development Facebook callback URL:', devUrl);
     return devUrl;
   };
