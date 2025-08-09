@@ -9,10 +9,17 @@ interface Tag {
   text: string;
 }
 
-interface SimilarImage {
-  id: string;
-  src: string;
-  alt: string;
+interface ImageItem {
+  _id: string;
+  url: string;
+  title?: string;
+  description?: string;
+  isBlurred: boolean;
+  isUnlocked?: boolean;
+  unlockPrice: number;
+  category?: string;
+  tags?: string[];
+  prompt?: string;
 }
 
 const ImageDetails: React.FC = () => {
@@ -22,6 +29,9 @@ const ImageDetails: React.FC = () => {
   const [tokens, setTokens] = useState<number | null>(null);
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   const [paypalOrderId, setPaypalOrderId] = useState<string | null>(null);
+  const [image, setImage] = useState<ImageItem | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [similarImages, setSimilarImages] = useState<ImageItem[]>([]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -89,6 +99,7 @@ const ImageDetails: React.FC = () => {
   };
 
   const prompt =
+    image?.prompt ||
     "Teemo juega al futbol con una pelota redonda. Mejor calidad, arte digital superdetallado.";
 
   const tagRows: Tag[][] = [
@@ -101,23 +112,70 @@ const ImageDetails: React.FC = () => {
     [{ text: "Smooth Body" }, { text: "Full Body" }, { text: "Rear view" }],
   ];
 
-  const similarImages: SimilarImage[] = [
-    {
-      id: "1",
-      src: "https://cdn.builder.io/api/v1/image/assets/TEMP/ac8b99854fa69d254d4905ace50eb9116f97e840?width=196",
-      alt: "Similar image 1",
-    },
-    {
-      id: "2",
-      src: "https://cdn.builder.io/api/v1/image/assets/TEMP/2600715ba0f5d2c34105eda96d8a0a154bc61aa1?width=198",
-      alt: "Similar image 2",
-    },
-    {
-      id: "3",
-      src: "https://cdn.builder.io/api/v1/image/assets/TEMP/048c2ee589095aeb762924749191569d7247c6d3?width=196",
-      alt: "Similar image 3",
-    },
-  ];
+  // Load current image details and similar images
+  useEffect(() => {
+    const loadImageAndSimilar = async () => {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+        if (!id) {
+          setImage(null);
+          setSimilarImages([]);
+          return;
+        }
+
+        // Fetch the current image details
+        const imageRes = await fetch(`${API_BASE_URL}/api/images/${id}`, {
+          credentials: "include",
+        });
+        if (imageRes.ok) {
+          const img: ImageItem = await imageRes.json();
+          setImage(img);
+
+          // Fetch images and filter similar
+          const listRes = await fetch(`${API_BASE_URL}/api/images?limit=50`, {
+            credentials: "include",
+          });
+          if (listRes.ok) {
+            const payload = await listRes.json();
+            const all: ImageItem[] = payload.images || payload || [];
+
+            const firstPromptWord = (img.prompt || "").split(/\s+/)[0]?.toLowerCase();
+            const similar = all
+              .filter((it) => it._id !== img._id)
+              .filter((it) => {
+                const matchesPrompt = firstPromptWord && it.prompt
+                  ? it.prompt.toLowerCase().includes(firstPromptWord)
+                  : false;
+                const matchesCategory = img.category && it.category
+                  ? it.category === img.category
+                  : false;
+                const matchesTags = img.tags && it.tags
+                  ? img.tags.some((t) => it.tags?.includes(t))
+                  : false;
+                return Boolean(matchesPrompt || matchesCategory || matchesTags);
+              })
+              .slice(0, 6);
+
+            setSimilarImages(similar);
+          } else {
+            setSimilarImages([]);
+          }
+        } else {
+          setImage(null);
+          setSimilarImages([]);
+        }
+      } catch (e) {
+        setImage(null);
+        setSimilarImages([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadImageAndSimilar();
+  }, []);
 
   const handleCopyPrompt = async () => {
     try {
@@ -144,11 +202,19 @@ const ImageDetails: React.FC = () => {
         <div className="w-full max-w-[756px] h-auto md:h-[521px] bg-[#171717] rounded-[20px] flex flex-col md:flex-row overflow-hidden">
           {/* Left side - Main Image */}
           <div className="w-full md:w-[270px] h-[300px] md:h-full">
-            <img
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/e3647855dc42a41c822e0e00b4951d114a17f789?width=540"
-              alt="Generated character image"
-              className="w-full h-full object-cover rounded-t-[20px] md:rounded-l-[20px] md:rounded-tr-none"
-            />
+            {loading ? (
+              <div className="w-full h-full bg-[#222] animate-pulse" />
+            ) : image ? (
+              <img
+                src={image.url}
+                alt={image.title || "Generated image"}
+                className={`w-full h-full object-cover rounded-t-[20px] md:rounded-l-[20px] md:rounded-tr-none ${
+                  image.isBlurred && !image.isUnlocked ? "blur-md" : ""
+                }`}
+              />
+            ) : (
+              <div className="w-full h-full bg-[#222]" />
+            )}
           </div>
 
           {/* Right side - Content */}
@@ -233,12 +299,17 @@ const ImageDetails: React.FC = () => {
                   Similar images
                 </h2>
                 <div className="flex gap-4 overflow-x-auto">
-                  {similarImages.map((image) => (
-                    <div key={image.id} className="flex-shrink-0">
+                  {similarImages.map((sim) => (
+                    <div key={sim._id} className="flex-shrink-0">
                       <img
-                        src={image.src}
-                        alt={image.alt}
-                        className="w-[98px] h-[129px] object-cover rounded-md hover:opacity-80 transition-opacity cursor-pointer"
+                        src={sim.url}
+                        alt={sim.title || "Similar image"}
+                        className={`w-[98px] h-[129px] object-cover rounded-md hover:opacity-80 transition-opacity cursor-pointer ${
+                          sim.isBlurred && !sim.isUnlocked ? "blur-md" : ""
+                        }`}
+                        onClick={() => {
+                          window.location.href = `/imagedetails?id=${sim._id}`;
+                        }}
                       />
                     </div>
                   ))}

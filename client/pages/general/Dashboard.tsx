@@ -34,8 +34,8 @@ const Dashboard: React.FC = () => {
   const [copyFeedback, setCopyFeedback] = useState("");
   const [filters, setFilters] = useState<FilterOption[]>([
     { id: "top", label: "Top", active: true },
-    { id: "new", label: "New", active: false },
-    { id: "all-style", label: "All Style", active: false },
+    { id: "new", label: "New", active: true },
+    { id: "all-style", label: "All Style", active: true },
     { id: "specific-style", label: "Specific Style", active: true },
   ]);
 

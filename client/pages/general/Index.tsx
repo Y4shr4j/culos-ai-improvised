@@ -209,89 +209,52 @@ const Index: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#2A2A2A] via-[#2A2A2A] to-[#513238] font-norwester">
+    <div className="min-h-screen bg-gradient-to-b from-[#1D1D1D] via-[#1D1D1D] to-[#3E1F24] font-norwester">
       {/* Navbar */}
       <Navbar user={user} tokens={tokens} onLogout={handleLogout} />
-      {/* Header Navigation (old header removed) */}
-      {/* Mobile Navigation Menu */}
-      {showMobileMenu && (
-        <div className="xl:hidden bg-culosai-card-dark border-t border-culosai-dark-brown">
-          <nav className="flex flex-col gap-4 px-4 py-6 max-w-[1200px] mx-auto">
-            <Link
-              to="/dashboard"
-              onClick={() => setShowMobileMenu(false)}
-              className="text-culosai-gold font-norwester text-xl font-normal hover:text-culosai-accent-gold transition-colors py-2"
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/ai-images"
-              onClick={() => setShowMobileMenu(false)}
-              className="text-culosai-gold font-norwester text-xl font-normal hover:text-culosai-accent-gold transition-colors py-2"
-            >
-              AI Images
-            </Link>
-            <a
-              href="#"
-              onClick={() => setShowMobileMenu(false)}
-              className="text-culosai-gold font-norwester text-xl font-normal hover:text-culosai-accent-gold transition-colors py-2"
-            >
-              AI Videos
-            </a>
-            <a
-              href="#"
-              onClick={() => setShowMobileMenu(false)}
-              className="text-culosai-gold font-norwester text-xl font-normal hover:text-culosai-accent-gold transition-colors py-2"
-            >
-              AI Character
-            </a>
-          </nav>
-        </div>
-      )}
 
       {/* Main Content */}
-      <main className="flex flex-col items-center gap-6 md:gap-8 px-4 py-8 md:py-12 max-w-[857px] mx-auto">
+      <div className="flex flex-col items-center gap-10 mt-16 px-4">
         {/* Title */}
-        <h2 className="font-norwester text-2xl md:text-3xl lg:text-[40px] font-normal text-center leading-normal px-4">
-          <span className="text-culosai-cream">Need some </span>
-          <span className="text-culosai-rust">Milk</span>
-          <span className="text-culosai-cream">? Get more</span>
+        <h2 className="text-center text-2xl sm:text-3xl lg:text-4xl leading-snug font-norwester">
+          <span className="text-[#F4E4BC]">Need some </span>
+          <span className="text-[#CD8246]">MILK</span>
+          <span className="text-[#F4E4BC]">? Get more</span>
         </h2>
 
         {/* Token Cards */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center gap-6 md:gap-8 lg:gap-10 w-full">
+        <div className="flex flex-wrap justify-center gap-8">
           {tokenPackages.map((pkg) => (
             <button
               key={pkg.id}
               onClick={() => handleTokenPurchase(pkg.id)}
-              className="group flex flex-col items-center justify-center w-full max-w-[280px] sm:max-w-[240px] lg:w-[259px] p-4 px-[20px] md:px-[30px] py-4 gap-[10px] rounded-xl border border-white/20 token-card-gradient shadow-[0px_6px_12px_0px_rgba(0,0,0,0.25)] hover:shadow-[0px_8px_16px_0px_rgba(0,0,0,0.35)] transition-all duration-300 hover:scale-105"
+              className="flex flex-col items-center w-[220px] sm:w-[240px] md:w-[260px] rounded-2xl bg-gradient-to-b from-[#4A262F] to-[#382E30] shadow-lg p-6 relative hover:scale-105 transition-transform cursor-pointer"
             >
               {/* Price */}
-              <div className="w-full text-right text-culosai-accent-gold font-norwester text-lg md:text-xl font-normal">
+              <div className="absolute top-4 right-4 text-[#F8C679] font-bold text-lg">
                 ${pkg.price}
               </div>
 
-              {/* Content */}
-              <div className="flex flex-col items-center gap-2">
-                <img
-                  src={pkg.image}
-                  alt={`${pkg.tokens} tokens`}
-                  className="w-[80px] h-[80px] md:w-[100px] md:h-[100px] object-contain"
-                />
+              {/* Token Image */}
+              <img
+                src={pkg.image}
+                alt={`${pkg.tokens} tokens`}
+                className="w-[80px] h-[80px] sm:w-[90px] sm:h-[90px]"
+              />
 
-                <div className="flex flex-col items-center">
-                  <div className="text-culosai-cream font-norwester text-3xl md:text-[40px] font-normal text-center leading-normal">
-                    {pkg.tokens}
-                  </div>
-                  <div className="text-culosai-cream font-norwester text-xl md:text-2xl font-normal text-center leading-normal">
-                    tokens
-                  </div>
-                </div>
+              {/* Token Amount */}
+              <div className="mt-4 text-culosai-cream text-3xl sm:text-4xl">
+                {pkg.tokens}
+              </div>
+
+              {/* Tokens Label */}
+              <div className="text-culosai-cream text-lg tracking-wider uppercase">
+                Tokens
               </div>
             </button>
           ))}
         </div>
-      </main>
+      </div>
 
       {/* Payment Modal */}
       {showPaymentModal && <PaymentModal />}

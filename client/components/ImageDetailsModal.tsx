@@ -38,6 +38,12 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
   const [promptCopied, setPromptCopied] = useState(false);
   const [similarImages, setSimilarImages] = useState<Image[]>([]);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
+  const [currentImage, setCurrentImage] = useState<Image>(image);
+
+  // Keep local image in sync if parent changes it
+  useEffect(() => {
+    setCurrentImage(image);
+  }, [image]);
 
   // Fetch similar images based on prompt or category
   useEffect(() => {
@@ -49,10 +55,10 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
         
         // Filter similar images based on prompt or category
         const similar = allImages.filter((img: Image) => 
-          img._id !== image._id && (
-            (image.prompt && img.prompt && img.prompt.toLowerCase().includes(image.prompt.toLowerCase().split(' ')[0])) ||
-            (image.category && img.category === image.category) ||
-            (image.tags && img.tags && image.tags.some(tag => img.tags?.includes(tag)))
+          img._id !== currentImage._id && (
+            (currentImage.prompt && img.prompt && img.prompt.toLowerCase().includes(currentImage.prompt.toLowerCase().split(' ')[0])) ||
+            (currentImage.category && img.category === currentImage.category) ||
+            (currentImage.tags && img.tags && currentImage.tags.some(tag => img.tags?.includes(tag)))
           )
         ).slice(0, 6); // Limit to 6 similar images
         
@@ -65,13 +71,13 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
     };
 
     fetchSimilarImages();
-  }, [image]);
+  }, [currentImage]);
 
   const handleCopyPrompt = async () => {
-    if (!image.prompt) return;
+    if (!currentImage.prompt) return;
     
     try {
-      await navigator.clipboard.writeText(image.prompt);
+      await navigator.clipboard.writeText(currentImage.prompt);
       setPromptCopied(true);
       setTimeout(() => setPromptCopied(false), 2000);
     } catch (err) {
@@ -81,12 +87,12 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(image.url);
+      const response = await fetch(currentImage.url);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = image.title || 'image.png';
+      link.download = currentImage.title || 'image.png';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -97,11 +103,11 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
   };
 
   const handleUnlock = async () => {
-    await onUnlock(image._id);
+    await onUnlock(currentImage._id);
   };
 
   const handleRemix = () => {
-    onRemix(image);
+    onRemix(currentImage);
     onClose();
   };
 
@@ -132,27 +138,27 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
         {/* Image Section */}
         <div className="w-full lg:w-1/2 h-64 sm:h-80 lg:h-full relative">
           <img
-            src={image.url}
-            alt={image.title || 'AI Generated Image'}
+            src={currentImage.url}
+            alt={currentImage.title || 'AI Generated Image'}
             className={`w-full h-full object-cover ${
-              image.isBlurred && !image.isUnlocked ? 'blur-md' : ''
+              currentImage.isBlurred && !currentImage.isUnlocked ? 'blur-md' : ''
             }`}
           />
           
           {/* Overlay for locked images */}
-          {image.isBlurred && !image.isUnlocked && (
+          {currentImage.isBlurred && !currentImage.isUnlocked && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
               <div className="text-center">
                 <Lock className="w-12 h-12 sm:w-16 sm:h-16 text-culosai-accent-gold mx-auto mb-4" />
                 <p className="text-culosai-cream font-norwester text-lg sm:text-xl">
-                  {image.unlockPrice} tokens to unlock
+                  {currentImage.unlockPrice} tokens to unlock
                 </p>
               </div>
             </div>
           )}
 
           {/* Unlocked Badge */}
-          {!image.isBlurred || image.isUnlocked ? (
+          {!currentImage.isBlurred || currentImage.isUnlocked ? (
             <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-norwester flex items-center gap-2">
               <Unlock className="w-4 h-4" />
               Unlocked
@@ -165,11 +171,11 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
           {/* Header */}
           <div className="mb-6">
             <h2 className="text-culosai-cream font-norwester text-xl sm:text-2xl lg:text-3xl mb-2">
-              {image.title || 'AI Generated Image'}
+              {currentImage.title || 'AI Generated Image'}
             </h2>
-            {image.uploadedBy && (
+            {currentImage.uploadedBy && (
               <p className="text-culosai-gold/60 text-sm sm:text-base">
-                By {image.uploadedBy.name}
+                By {currentImage.uploadedBy.name}
               </p>
             )}
           </div>
@@ -198,7 +204,7 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
               Download
             </motion.button>
 
-            {image.isBlurred && !image.isUnlocked && (
+            {currentImage.isBlurred && !currentImage.isUnlocked && (
               <motion.button
                 onClick={handleUnlock}
                 className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white font-norwester rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base min-h-[44px]"
@@ -206,13 +212,13 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
                 whileTap={{ scale: 0.95 }}
               >
                 <Unlock className="w-4 h-4" />
-                Unlock ({image.unlockPrice} tokens)
+                Unlock ({currentImage.unlockPrice} tokens)
               </motion.button>
             )}
           </div>
 
           {/* Prompt Section */}
-          {image.prompt && (
+          {currentImage.prompt && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl">Prompt</h3>
@@ -231,28 +237,28 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
               </div>
               <div className="p-4 bg-[#2A2A2A] rounded-lg">
                 <p className="text-culosai-gold/80 text-sm sm:text-base leading-relaxed">
-                  {image.prompt}
+                  {currentImage.prompt}
                 </p>
               </div>
             </div>
           )}
 
           {/* Description */}
-          {image.description && (
+          {currentImage.description && (
             <div className="mb-6">
               <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl mb-3">Description</h3>
               <p className="text-culosai-gold/70 text-sm sm:text-base leading-relaxed">
-                {image.description}
+                {currentImage.description}
               </p>
             </div>
           )}
 
           {/* Tags */}
-          {image.tags && image.tags.length > 0 && (
+          {currentImage.tags && currentImage.tags.length > 0 && (
             <div className="mb-6">
               <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl mb-3">Tags</h3>
               <div className="flex flex-wrap gap-2">
-                {image.tags.map((tag, index) => (
+                {currentImage.tags.map((tag, index) => (
                   <span
                     key={index}
                     className="bg-culosai-accent-gold/20 text-culosai-accent-gold text-sm px-3 py-1 rounded-full"
@@ -265,11 +271,11 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
           )}
 
           {/* Category Selections */}
-          {image.categorySelections && Object.keys(image.categorySelections).length > 0 && (
+          {currentImage.categorySelections && Object.keys(currentImage.categorySelections).length > 0 && (
             <div className="mb-6">
               <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl mb-3">Categories</h3>
               <div className="flex flex-wrap gap-2">
-                {Object.entries(image.categorySelections).map(([key, value]) => (
+                {Object.entries(currentImage.categorySelections).map(([key, value]) => (
                   <span
                     key={key}
                     className="bg-culosai-dark-brown/50 text-culosai-cream text-sm px-3 py-1 rounded-full"
@@ -294,11 +300,14 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
                   <div
                     key={similarImage._id}
                     className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setCurrentImage(similarImage)}
                   >
                     <img
                       src={similarImage.url}
                       alt={similarImage.title || 'Similar Image'}
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover ${
+                        similarImage.isBlurred && !similarImage.isUnlocked ? 'blur-md' : ''
+                      }`}
                     />
                   </div>
                 ))}

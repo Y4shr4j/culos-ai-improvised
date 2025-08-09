@@ -147,9 +147,6 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
     fetchImages();
   }, []);
 
-  // Get unique categories for filter
-  const categories = [...new Set(images.map(img => img.category).filter(Boolean))];
-
   if (authLoading) {
     return (
       <div className="text-center">
@@ -170,15 +167,10 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
             <p className="mb-6">Loading images...</p>
             
             {/* Loading skeleton */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-6">
               {[...Array(10)].map((_, index) => (
-                <div key={index} className="relative overflow-hidden rounded-lg shadow-lg bg-[#171717] animate-pulse">
-                  <div className="aspect-square bg-culosai-dark bg-opacity-50"></div>
-                  <div className="p-3">
-                    <div className="h-4 bg-culosai-dark bg-opacity-50 rounded mb-2"></div>
-                    <div className="h-3 bg-culosai-dark bg-opacity-30 rounded mb-2"></div>
-                    <div className="h-6 bg-culosai-dark bg-opacity-20 rounded w-3/4"></div>
-                  </div>
+                <div key={index} className="relative overflow-hidden rounded-lg shadow-lg bg-[#171717] animate-pulse mb-6 break-inside-avoid">
+                  <div className="h-48 bg-culosai-dark bg-opacity-50"></div>
                 </div>
               ))}
             </div>
@@ -201,32 +193,30 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-6">
             {images.map((image) => (
               <motion.div
                 key={image._id} 
-                className={`relative group overflow-hidden rounded-lg shadow-lg bg-[#171717] ${(!image.isBlurred || image.isUnlocked) ? 'cursor-pointer' : 'cursor-default'}`} 
+                className={`relative group overflow-hidden rounded-lg shadow-lg bg-[#171717] mb-6 break-inside-avoid ${(!image.isBlurred || image.isUnlocked) ? 'cursor-pointer' : 'cursor-default'}`} 
                 onClick={() => handleImageClick(image)}
-                whileHover={{ scale: 1.04, boxShadow: '0 8px 32px 0 rgba(252,237,188,0.10)' }}
+                whileHover={{ scale: 1.02, boxShadow: '0 8px 32px 0 rgba(252,237,188,0.10)' }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.16, ease: 'easeOut' }}
               >
-                <div 
-                  className="relative aspect-square overflow-hidden"
-                  style={{
-                    filter: image.isBlurred && !image.isUnlocked 
-                      ? `blur(8px)` // 80% blur effect
-                      : 'none',
-                    transition: 'filter 0.3s ease-in-out'
-                  }}
-                >
+                <div className="relative overflow-hidden">
                   <img
                     src={image.url}
                     alt={image.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
                     loading="lazy"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
+                    }}
+                    style={{
+                      filter: image.isBlurred && !image.isUnlocked 
+                        ? `blur(8px)` // 80% blur effect
+                        : 'none',
+                      transition: 'filter 0.3s ease-in-out'
                     }}
                   />
                   
@@ -253,22 +243,6 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
                     </div>
                   )}
                 </div>
-                
-                <div className="p-3">
-                  <h3 className="text-culosai-cream font-norwester text-sm font-semibold truncate mb-1">
-                    {image.title}
-                  </h3>
-                  {image.description && (
-                    <p className="text-culosai-accent-gold font-norwester text-xs truncate mb-2">
-                      {image.description}
-                    </p>
-                  )}
-                  {image.category && (
-                    <span className="inline-block px-2 py-1 bg-culosai-accent-gold bg-opacity-20 text-culosai-accent-gold text-xs rounded-full">
-                      {image.category}
-                    </span>
-                  )}
-                </div>
               </motion.div>
             ))}
           </div>
@@ -281,9 +255,6 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
             onClose={handleCloseImageDetails}
             onUnlock={handleUnlockImage}
             onRemix={handleRemix}
-            user={user}
-            tokens={tokens}
-            unlockingImageId={unlockingImageId}
           />
         )}
       </div>
@@ -336,24 +307,26 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
 
           {/* Image Grid */}
           {!loading && !error && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8">
+            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 sm:gap-6 lg:gap-8">
               {images.map((image) => (
                 <motion.div
                   key={image._id}
-                  className="group relative bg-[#2A2A2A] rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                  className="group relative bg-[#2A2A2A] rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer mb-4 sm:mb-6 lg:mb-8 break-inside-avoid"
                   whileHover={{ scale: 1.02, y: -4 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
                   onClick={() => handleImageClick(image)}
                 >
                   {/* Image Container */}
-                  <div className="relative aspect-square overflow-hidden">
+                  <div className="relative overflow-hidden">
                     <img
                       src={image.url}
                       alt={image.title || 'AI Generated Image'}
-                      className={`w-full h-full object-cover transition-all duration-300 ${
-                        image.isBlurred && !image.isUnlocked ? 'blur-md' : ''
-                      }`}
+                      className="w-full h-auto object-cover transition-all duration-300"
+                      style={{
+                        filter: image.isBlurred && !image.isUnlocked ? 'blur(8px)' : 'none',
+                        transition: 'filter 0.3s ease-in-out'
+                      }}
                     />
                     
                     {/* Overlay for locked images */}
@@ -396,48 +369,6 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
                         Unlocked
                       </div>
                     ) : null}
-                  </div>
-
-                  {/* Image Info */}
-                  <div className="p-3 sm:p-4">
-                    <h3 className="text-culosai-cream font-norwester text-sm sm:text-base mb-2 line-clamp-2">
-                      {image.title || 'AI Generated Image'}
-                    </h3>
-                    
-                    {image.description && (
-                      <p className="text-culosai-gold/70 text-xs sm:text-sm mb-2 line-clamp-2">
-                        {image.description}
-                      </p>
-                    )}
-
-                    {/* Tags */}
-                    {image.tags && image.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-2">
-                        {image.tags.slice(0, 3).map((tag, index) => (
-                          <span
-                            key={index}
-                            className="bg-culosai-accent-gold/20 text-culosai-accent-gold text-xs px-2 py-1 rounded-full"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                        {image.tags.length > 3 && (
-                          <span className="text-culosai-gold/60 text-xs">
-                            +{image.tags.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Upload Info */}
-                    {image.uploadedBy && (
-                      <div className="flex items-center gap-2 text-xs text-culosai-gold/60">
-                        <div className="w-4 h-4 bg-culosai-accent-gold rounded-full flex items-center justify-center text-culosai-dark-brown font-bold text-xs">
-                          {image.uploadedBy.name.charAt(0)}
-                        </div>
-                        <span className="truncate">{image.uploadedBy.name}</span>
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               ))}

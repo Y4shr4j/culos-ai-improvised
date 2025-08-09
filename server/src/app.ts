@@ -336,10 +336,10 @@ app.post("/api/generate", authMiddleware, async (req, res) => {
     console.log('Token deducted. New balance:', user.tokens);
 
     // 3. Call Stability AI API
-    const apiKey = process.env.STABILITY_API_KEY || "sk-YCIPirgXVCGX78tvpT4o7DHA81UgxXg5f5XqAtUt6KCCwR2k";
+    const apiKey = process.env.STABILITY_API_KEY;
     if (!apiKey) {
       console.log('Stability API key not set');
-      return res.status(500).json({ message: "Stability API key not set" });
+      return res.status(500).json({ message: "Stability API key not set. Please configure STABILITY_API_KEY in your environment variables." });
     }
 
     console.log('Calling Stability AI API...');
@@ -495,7 +495,11 @@ app.post(
         categoryContext = req.body.categoryContext;
       }
 
-      const apiKey = process.env.STABILITY_API_KEY || "sk-YCIPirgXVCGX78tvpT4o7DHA81UgxXg5f5XqAtUt6KCCwR2k";
+      const apiKey = process.env.STABILITY_API_KEY;
+      if (!apiKey) {
+        console.log('Stability API key not set for video generation');
+        return res.status(500).json({ message: "Stability API key not set. Please configure STABILITY_API_KEY in your environment variables." });
+      }
       console.log('Sending request to Stability AI video generation...');
       // Try alternative endpoint for video generation
       let startRes;
