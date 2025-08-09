@@ -89,6 +89,12 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
       if (selectedImage && selectedImage._id === imageId) {
         setSelectedImage(prev => prev ? { ...prev, isUnlocked: true, isBlurred: false } : null);
       }
+
+      // Refresh tokens live
+      try {
+        const tokenData = await get<any>('/auth/tokens');
+        setTokens(tokenData.tokens);
+      } catch {}
     } catch (err: any) {
       console.error('Error unlocking image:', err);
       alert(err.message || 'Failed to unlock image');

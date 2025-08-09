@@ -129,6 +129,20 @@ export const getVideos = async (req: Request, res: Response) => {
       .lean();
 
     const total = await VideoModel.countDocuments(filter);
+
+    // If user is authenticated, mark unlocked videos
+    if (req.user) {
+      const user = await UserModel.findById((req.user as any)._id);
+      if (user) {
+        const unlockedIds = new Set(user.unlockedImages.map((u) => String((u as any).imageId)));
+        for (const v of videos as any[]) {
+          if (unlockedIds.has(String(v._id))) {
+            v.isUnlocked = true;
+            v.isBlurred = false;
+          }
+        }
+      }
+    }
     
     res.json({
       videos,
@@ -157,7 +171,18 @@ export const getVideoById = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Video not found' });
     }
     
-    res.json(video);
+    const data: any = video.toObject();
+    if (req.user) {
+      const user = await UserModel.findById((req.user as any)._id);
+      if (user) {
+        const unlocked = user.unlockedImages.some((u) => String((u as any).imageId) === String(video._id));
+        if (unlocked) {
+          data.isUnlocked = true;
+          data.isBlurred = false;
+        }
+      }
+    }
+    res.json(data);
   } catch (error) {
     console.error('Error fetching video:', error);
     res.status(500).json({ message: 'Error fetching video' });

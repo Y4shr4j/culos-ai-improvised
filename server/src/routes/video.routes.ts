@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { protect } from '../middleware/auth';
+import { protect, optionalAuth } from '../middleware/auth';
 import {
   uploadVideo,
   getVideos,
@@ -30,8 +30,8 @@ const upload = multer({
 });
 
 // Public routes
-router.get('/', getVideos);
-router.get('/:id', getVideoById);
+router.get('/', optionalAuth, getVideos);
+router.get('/:id', optionalAuth, getVideoById);
 router.post('/:id/view', incrementVideoViews);
 
 // Protected admin routes

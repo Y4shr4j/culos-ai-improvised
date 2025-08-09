@@ -88,8 +88,10 @@ const AIVideoGallery: React.FC = () => {
       }
     };
 
-    fetchVideos();
-  }, []);
+    if (!authLoading) {
+      fetchVideos();
+    }
+  }, [authLoading, token]);
 
   const handleVideoClick = (video: Video) => {
     if (video.isBlurred && !video.isUnlocked) return; // locked content
@@ -293,8 +295,13 @@ const AIVideoGallery: React.FC = () => {
                               className="mt-2 bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-medium py-1 px-3 rounded-full text-xs transition-colors"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                post(`/videos/${video._id}/unlock`).then(() => {
+                                post(`/videos/${video._id}/unlock`).then(async () => {
+                                  // Update list and tokens live
                                   setVideos((prev) => prev.map(v => v._id === video._id ? { ...v, isBlurred: false, isUnlocked: true } as any : v));
+                                  try {
+                                    const tokenData = await get<any>('/auth/tokens');
+                                    setTokens(tokenData.tokens);
+                                  } catch {}
                                 }).catch((err) => console.error('Unlock video failed:', err));
                               }}
                             >
