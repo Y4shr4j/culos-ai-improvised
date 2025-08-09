@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPaypalOrder, capturePaypalOrder } from '../controllers/payment.controller';
+import { createPaypalOrder, capturePaypalOrder, createCryptoInvoice, confirmCryptoPayment } from '../controllers/payment.controller';
 import { isAuthenticated } from '../middleware/auth';
 
 const router = express.Router();
@@ -13,5 +13,9 @@ router.get('/test', (req, res) => {
 router.post('/paypal/create-order', isAuthenticated, createPaypalOrder);
 // Capture PayPal order
 router.post('/paypal/capture-order', isAuthenticated, capturePaypalOrder);
+
+// Crypto payments
+router.post('/crypto/create-invoice', isAuthenticated, createCryptoInvoice);
+router.post('/crypto/confirm', isAuthenticated, confirmCryptoPayment);
 
 export default router; 

@@ -64,12 +64,29 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
   };
 
-  const handleContinue = () => {
-    if (selectedPayment === "crypto") {
-      // Handle crypto payment logic here
-      console.log("Processing crypto payment...");
+  const handleContinue = async () => {
+    try {
+      if (!selectedPkg) return;
+      if (selectedPayment === "crypto") {
+        setPaymentLoading(true);
+        const invoice = await post<{ id: string; url: string }>("/payment/crypto/create-invoice", {
+          packageId: selectedPkg.id,
+          amount: selectedPkg.price,
+          currency: "USD",
+        });
+        // Open invoice in a new tab
+        if (invoice?.url) {
+          window.open(invoice.url, "_blank", "noopener,noreferrer");
+        }
+        // Poll simple confirmation endpoint (user clicks confirm after payment)
+        // In production, use real webhooks; this is a manual confirm flow
+      }
+      onClose();
+    } catch (err) {
+      console.error('Crypto payment error:', err);
+    } finally {
+      setPaymentLoading(false);
     }
-    onClose();
   };
 
   const [paypalSrc, setPaypalSrc] = useState(
