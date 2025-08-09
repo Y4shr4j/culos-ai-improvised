@@ -8,7 +8,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider } from "./src/contexts/AuthContext";
-import { motion, AnimatePresence } from 'framer-motion';
+// Removed route transition animations
 import AdminIndex from "./pages/admin/Index";
 import AdminAiCharacters from "./pages/admin/AiCharacters";
 import AdminApiSettings from "./pages/admin/ApiSettings";
@@ -46,24 +46,7 @@ import AdminRoute from "./components/AdminRoute";
 import AgeVerificationModal from "./components/AgeVerificationModal";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 
-// Page transition component
-const PageTransition = ({ children }: { children: React.ReactNode }) => {
-  const location = useLocation();
-  
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
-  );
-};
+// Page transitions disabled per request
 
 const App = () => {
   const initialOptions = {
@@ -81,7 +64,6 @@ const App = () => {
           <BrowserRouter>
             <AuthProvider>
               <AgeVerificationModal />
-              <PageTransition>
                 <Routes>
                   <Route path="/" element={<GeneralDashboard />} />
                   <Route path="/login" element={<AuthLogin />} />
@@ -198,7 +180,6 @@ const App = () => {
                   {/* Catch-all NotFound */}
                   <Route path="*" element={<AuthNotFound />} />
                 </Routes>
-              </PageTransition>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
