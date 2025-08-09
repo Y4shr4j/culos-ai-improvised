@@ -2,10 +2,9 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar";
 import { Link } from "react-router-dom";
 import { Copy, Languages, X } from "lucide-react";
-import { get, post } from "../../src/utils/api";
+import { get } from "../../src/utils/api";
 import { useAuth } from "../../src/contexts/AuthContext";
-import { PayPalButtons } from "@paypal/react-paypal-js";
-import { OnApproveData, CreateOrderData } from "@paypal/paypal-js";
+import PaymentModal from "../../components/PaymentModal";
 import AIImageGallery from "./AIImageGallery";
 import { motion } from 'framer-motion';
 
@@ -197,21 +196,21 @@ const Dashboard: React.FC = () => {
     {
       id: "20-tokens",
       tokens: 20,
-      price: 1.00, // $1 for 20 tokens (1 token per image)
+      price: 9.99, // $1 for 20 tokens (1 token per image)
       image:
         "https://cdn.builder.io/api/v1/image/assets/TEMP/e09c95510744d73cfc34946b0c0d258ff0f301bd?width=200",
     },
     {
       id: "50-tokens",
       tokens: 50,
-      price: 2.50, // $2.50 for 50 tokens
+      price: 24.99, // $2.50 for 50 tokens
       image:
         "https://cdn.builder.io/api/v1/image/assets/TEMP/f62e9b0760abc723b722adfef447297f3c3c46a0?width=200",
     },
     {
       id: "100-tokens",
       tokens: 100,
-      price: 5.00, // $5 for 100 tokens
+      price: 49.99, // $5 for 100 tokens
       image:
         "https://cdn.builder.io/api/v1/image/assets/TEMP/596554b5957d7af1cbe3bfc77e88d995b06ba5d8?width=200",
     },
@@ -235,162 +234,7 @@ const Dashboard: React.FC = () => {
 
 
 
-  const PaymentModal = ({ selectedPackage, onPaymentSuccess, onClose }: {
-    selectedPackage: string | null;
-    onPaymentSuccess: () => void;
-    onClose: () => void;
-  }) => {
-    const [selectedPayment, setSelectedPayment] = useState("paypal");
-    const [paymentLoading, setPaymentLoading] = useState(false);
-    const [paymentSuccess, setPaymentSuccess] = useState(false);
-    const [paymentError, setPaymentError] = useState<string | null>(null);
-
-    const getSelectedPackageInfo = () => tokenPackages.find(pkg => pkg.id === selectedPackage);
-
-    if (!selectedPackage) return null;
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div className="bg-culosai-cream border border-culosai-brown rounded-[20px] md:rounded-[40px] p-4 md:p-8 w-full max-w-sm md:max-w-2xl">
-          <div className="flex flex-col items-center gap-8 md:gap-16">
-            {/* Header */}
-            <div className="flex flex-col items-start gap-4 md:gap-8 w-full">
-              <div className="flex flex-col items-center gap-3 w-full">
-                <div className="flex items-center gap-3 w-full">
-                  <button
-                    onClick={onClose}
-                    className="text-culosai-brown hover:text-culosai-dark-brown transition-colors"
-                    disabled={paymentLoading}
-                  >
-                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
-                  </button>
-                  <h2 className="font-norwester text-lg md:text-xl text-culosai-brown text-center flex-1">
-                    Buy Tokens
-                  </h2>
-                </div>
-                <p className="font-norwester text-sm md:text-base text-culosai-rust">
-                  Select payment method
-                </p>
-              </div>
-
-              {/* Payment Methods */}
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-4 md:gap-8 w-full">
-                {selectedPayment === "paypal" ? (
-                  <div className="w-full">
-                    <PayPalButtons
-                      style={{ layout: "vertical", color: 'gold', shape: 'rect', label: 'paypal' }}
-                      disabled={paymentLoading || !selectedPackage}
-                      createOrder={async () => {
-                        setPaymentLoading(true);
-                        setPaymentError(null);
-                        try {
-                          const pkg = getSelectedPackageInfo();
-                          if (!pkg) throw new Error("Package not found");
-                          console.log('Creating PayPal order for package:', pkg);
-                          const res = await post<{ id: string }>("/payment/paypal/create-order", {
-                            packageId: pkg.id,
-                            amount: pkg.price.toFixed(2),
-                            currency: "USD"
-                          });
-                          console.log('PayPal order created:', res);
-                          setPaymentLoading(false);
-                          return res.id; // PayPal orderID
-                        } catch (err: any) {
-                          console.error('PayPal order creation failed:', err);
-                          setPaymentLoading(false);
-                          setPaymentError(err.message || "Failed to create PayPal order");
-                          throw err;
-                        }
-                      }}
-                      onApprove={async (data: any) => {
-                        setPaymentLoading(true);
-                        setPaymentError(null);
-                        try {
-                          const pkg = getSelectedPackageInfo();
-                          if (!pkg) throw new Error("Package not found");
-                          console.log('Capturing PayPal order:', data.orderID, 'for package:', pkg.id);
-                          await post<any>(
-                            "/payment/paypal/capture-order",
-                            {
-                              orderID: data.orderID,
-                              packageId: pkg.id
-                            }
-                          );
-                          console.log('PayPal order captured successfully');
-                          setPaymentLoading(false);
-                          setPaymentSuccess(true);
-                          onPaymentSuccess();
-                        } catch (err: any) {
-                          console.error('PayPal order capture failed:', err);
-                          setPaymentLoading(false);
-                          setPaymentError(err.message || "Failed to capture PayPal payment");
-                        }
-                      }}
-                      onError={(err: any) => {
-                        setPaymentLoading(false);
-                        setPaymentError("PayPal error: " + (err?.message || err));
-                      }}
-                      onCancel={() => {
-                        setPaymentLoading(false);
-                        setPaymentError("Payment cancelled");
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setSelectedPayment("paypal")}
-                    className={`flex flex-col items-center justify-center w-full sm:w-[200px] md:w-[228px] h-[120px] md:h-[140px] rounded-xl border-2 transition-all ${selectedPayment === "paypal"
-                        ? "border-culosai-dark-brown bg-culosai-selected"
-                        : "border-culosai-dark-brown/50 bg-culosai-light-cream hover:border-culosai-dark-brown"
-                      }`}
-                    disabled={paymentLoading}
-                  >
-                    {/* Paypal SVG */}
-                    <svg width="121" height="34" viewBox="0 0 121 34" fill="none" className="flex-shrink-0">
-                      <path
-                        d="M14.5033 0.501953H5.10273C4.45933 0.501953 3.9123 0.980941 3.81192 1.63183L0.00987164 26.331C-0.0657482 26.8182 0.302717 27.2578 0.785116 27.2578H5.27312C5.91641 27.2578 6.46344 26.779 6.56381 26.1268L7.58923 19.4651C7.68824 18.8129 8.23663 18.334 8.87856 18.334H11.8545C18.047 18.334 21.6208 15.2637 22.5543 9.17933C22.9748 6.51739 22.572 4.42597 21.3555 2.96123C20.0195 1.35267 17.6497 0.501953 14.5033 0.501953ZM15.5879 9.52303C15.0738 12.9793 12.4965 12.9793 10.0044 12.9793H8.58583L9.58099 6.52454C9.64014 6.13437 9.96997 5.84706 10.3549 5.84706H11.005C12.7026 5.84706 14.3041 5.84706 15.1315 6.83848C15.625 7.4301 15.7762 8.30891 15.5879 9.52303Z"
-                        fill="#283B82"
-                      />
-                      <path
-                        d="M14.5033 0.501953H5.10273C4.45933 0.501953 3.9123 0.980941 3.81192 1.63183L0.00987164 26.331C-0.0657482 26.8182 0.302717 27.2578 0.785116 27.2578H5.27312C5.91641 27.2578 6.46344 26.779 6.56381 26.1268L7.58923 19.4651C7.68824 18.8129 8.23663 18.334 8.87856 18.334H11.8545C18.047 18.334 21.6208 15.2637 22.5543 9.17933C22.9748 6.51739 22.572 4.42597 21.3555 2.96123C20.0195 1.35267 17.6497 0.501953 14.5033 0.501953ZM15.5879 9.52303C15.0738 12.9793 12.4965 12.9793 10.0044 12.9793H8.58583L9.58099 6.52454C9.64014 6.13437 9.96997 5.84706 10.3549 5.84706H11.005C12.7026 5.84706 14.3041 5.84706 15.1315 6.83848C15.625 7.4301 15.7762 8.30891 15.5879 9.52303Z"
-                        fill="#283B82"
-                      />
-                      <path
-                        d="M14.5033 0.501953H5.10273C4.45933 0.501953 3.9123 0.980941 3.81192 1.63183L0.00987164 26.331C-0.0657482 26.8182 0.302717 27.2578 0.785116 27.2578H5.27312C5.91641 27.2578 6.46344 26.779 6.56381 26.1268L7.58923 19.4651C7.68824 18.8129 8.23663 18.334 8.87856 18.334H11.8545C18.047 18.334 21.6208 15.2637 22.5543 9.17933C22.9748 6.51739 22.572 4.42597 21.3555 2.96123C20.0195 1.35267 17.6497 0.501953 14.5033 0.501953ZM15.5879 9.52303C15.0738 12.9793 12.4965 12.9793 10.0044 12.9793H8.58583L9.58099 6.52454C9.64014 6.13437 9.96997 5.84706 10.3549 5.84706H11.005C12.7026 5.84706 14.3041 5.84706 15.1315 6.83848C15.625 7.4301 15.7762 8.30891 15.5879 9.52303Z"
-                        fill="#283B82"
-                      />
-                    </svg>
-                  </button>
-                )}
-                <button
-                  onClick={() => setSelectedPayment("crypto")}
-                  className={`flex flex-col items-center justify-center w-full sm:w-[200px] md:w-[228px] h-[120px] md:h-[140px] rounded-xl border transition-all ${selectedPayment === "crypto"
-                      ? "border-culosai-dark-brown bg-culosai-selected border-2"
-                      : "border-culosai-dark-brown/50 bg-culosai-light-cream hover:border-culosai-dark-brown"
-                    }`}
-                  disabled={paymentLoading}
-                >
-                  <img
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/39faec1ba29b02ea401235473c601b3758a75872?width=274"
-                    alt="Crypto accepted"
-                    className="w-[100px] h-[65px] md:w-[137px] md:h-[89px] rounded-[14px]"
-                  />
-                </button>
-              </div>
-            </div>
-
-            {/* Payment Status Messages */}
-            <div className="w-full flex flex-col items-center mt-4 text-center">
-              {paymentLoading && <div className="text-culosai-brown mb-2">Processing payment...</div>}
-              {paymentSuccess && <div className="text-green-600 mb-2">Payment successful! Tokens credited.</div>}
-              {paymentError && <div className="text-red-600 mb-2">{paymentError}</div>}
-            </div>
-
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // Reuse shared PaymentModal component
 
 
 
@@ -795,11 +639,15 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
-      {showPaymentModal && <PaymentModal 
-        selectedPackage={selectedPackage}
-        onPaymentSuccess={handlePaymentSuccess}
-        onClose={() => setShowPaymentModal(false)}
-      />}
+      {showPaymentModal && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          selectedPackage={selectedPackage}
+          tokenPackages={tokenPackages}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
 
     </div>
   );

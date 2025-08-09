@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { PayPalButtons } from "@paypal/react-paypal-js";
-import { post, get } from "../src/utils/api";
+import { post } from "../src/utils/api";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -34,7 +34,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     if (!selectedPkg) return;
     try {
       setPaymentLoading(true);
-      const response = await post<{ id: string }>("/paypal/create-order", {
+      const response = await post<{ id: string }>("/payment/paypal/create-order", {
         packageId: selectedPkg.id,
         amount: selectedPkg.price,
         currency: "USD",
@@ -51,7 +51,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     if (!selectedPackage) return;
     try {
       setPaymentLoading(true);
-      await post("/paypal/capture-order", {
+      await post("/payment/paypal/capture-order", {
         orderID: data.orderID,
         packageId: selectedPackage,
       });
@@ -71,6 +71,15 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     }
     onClose();
   };
+
+  const [paypalSrc, setPaypalSrc] = useState(
+    "https://www.paypalobjects.com/images/checkout/clearLogos/PayPal.svg"
+  );
+
+  const fallbackPaypalSrc = useMemo(
+    () => "https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg",
+    []
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -100,38 +109,44 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           </div>
 
           {/* Payment Methods */}
-          <div className="flex gap-4">
+          <div className="flex gap-6">
             {/* PayPal */}
             <button
               onClick={() => setSelectedPayment("paypal")}
-              className={`flex-1 flex items-center justify-center h-20 rounded-xl border-2 transition-all ${
+              className={`flex-1 flex items-center justify-center h-40 md:h-44 rounded-2xl border transition-all p-4 ${
                 selectedPayment === "paypal"
-                  ? "border-[#42100B] bg-[#FCEDBC]"
-                  : "border-[#CD8246]/30 bg-[#FCEDBC] hover:border-[#CD8246]"
+                  ? "border-[#42100B] bg-[#FCEDBC] shadow-sm"
+                  : "border-[#CD8246]/40 bg-[#FCEDBC] hover:border-[#CD8246]"
               }`}
             >
-              <div className="text-[#003087] font-bold text-xl italic">PayPal</div>
+              <img
+                src={paypalSrc}
+                alt="PayPal"
+                className="h-10 md:h-12 object-contain"
+                draggable={false}
+                onError={() => {
+                  if (paypalSrc !== fallbackPaypalSrc) {
+                    setPaypalSrc(fallbackPaypalSrc);
+                  }
+                }}
+              />
             </button>
 
             {/* Crypto */}
             <button
               onClick={() => setSelectedPayment("crypto")}
-              className={`flex-1 flex items-center justify-center h-20 rounded-xl border-2 transition-all ${
+              className={`flex-1 flex items-center justify-center h-40 md:h-44 rounded-2xl border transition-all p-4 ${
                 selectedPayment === "crypto"
-                  ? "border-[#42100B] bg-[#FCEDBC]"
-                  : "border-[#CD8246]/30 bg-[#FCEDBC] hover:border-[#CD8246]"
+                  ? "border-[#42100B] bg-[#FCEDBC] shadow-sm"
+                  : "border-[#CD8246]/40 bg-[#FCEDBC] hover:border-[#CD8246]"
               }`}
             >
-              <div className="flex flex-col items-center">
-                <div className="text-[#42100B] font-bold text-sm mb-1">CRYPTO</div>
-                <div className="flex gap-1">
-                  <div className="w-3 h-3 bg-[#F7931A] rounded-full"></div>
-                  <div className="w-3 h-3 bg-[#627EEA] rounded-full"></div>
-                  <div className="w-3 h-3 bg-[#00D4AA] rounded-full"></div>
-                  <div className="w-3 h-3 bg-[#1652F0] rounded-full"></div>
-                </div>
-                <div className="text-[10px] text-[#42100B]/70 font-medium mt-1">ACCEPTED HERE</div>
-              </div>
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/39faec1ba29b02ea401235473c601b3758a75872?width=274"
+                alt="Crypto accepted"
+                className="h-16 md:h-20 object-contain"
+                draggable={false}
+              />
             </button>
           </div>
 
@@ -153,7 +168,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             disabled={!selectedPayment || paymentLoading}
             className="bg-[#813521] hover:bg-[#813521]/90 text-[#F4E4BC] font-norwester text-base font-bold px-8 py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase w-full"
           >
-            {paymentLoading ? "Processing..." : "Standard"}
+            {paymentLoading ? "Processing..." : "STANDARD"}
           </button>
         </div>
       </div>

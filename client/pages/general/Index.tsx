@@ -3,6 +3,7 @@ import { User, ChevronLeft, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import { get, post } from "../../src/utils/api";
+import PaymentModal from "../../components/PaymentModal";
 import { PayPalButtons } from "@paypal/react-paypal-js";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -137,76 +138,16 @@ const Index: React.FC = () => {
     setShowPaymentModal(true);
   };
 
-  const PaymentModal = () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
-      <div className="bg-culosai-cream border border-culosai-brown rounded-[20px] md:rounded-[40px] p-4 md:p-8 w-full max-w-sm md:max-w-2xl">
-        <div className="flex flex-col items-center gap-8 md:gap-16">
-          {/* Header */}
-          <div className="flex flex-col items-start gap-4 md:gap-8 w-full">
-            <div className="flex flex-col items-center gap-3 w-full">
-              <div className="flex items-center gap-3 w-full">
-                <button
-                  onClick={() => setShowPaymentModal(false)}
-                  className="text-culosai-brown hover:text-culosai-dark-brown transition-colors"
-                >
-                  <ChevronLeft
-                    size={20}
-                    strokeWidth={3}
-                    className="md:w-6 md:h-6"
-                  />
-                </button>
-                <h2 className="font-norwester text-lg md:text-xl text-culosai-brown text-center flex-1">
-                  Cambio de Paquete
-                </h2>
-              </div>
-              <p className="font-norwester text-sm md:text-base text-culosai-rust">
-                Seleccionar metodo de pago
-              </p>
-            </div>
-
-            {/* Payment Methods */}
-            <div className="flex flex-col sm:flex-row justify-center items-center gap-4 md:gap-8 w-full">
-              <div className="w-full">
-                <PayPalButtons
-                  style={{ layout: "vertical" }}
-                  createOrder={createOrder}
-                  onApprove={onApprove}
-                  disabled={paymentLoading}
-                />
-              </div>
-              <button
-                onClick={() => setSelectedPayment("crypto")}
-                className={`flex flex-col items-center justify-center w-full sm:w-[200px] md:w-[228px] h-[120px] md:h-[140px] rounded-xl border transition-all ${
-                  selectedPayment === "crypto"
-                    ? "border-culosai-dark-brown bg-culosai-selected border-2"
-                    : "border-culosai-dark-brown/50 bg-culosai-light-cream hover:border-culosai-dark-brown"
-                }`}
-              >
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/39faec1ba29b02ea401235473c601b3758a75872?width=274"
-                  alt="Crypto accepted"
-                  className="w-[100px] h-[65px] md:w-[137px] md:h-[89px] rounded-[14px]"
-                />
-              </button>
-            </div>
-          </div>
-
-          {/* Continue Button */}
-          <button
-            className="bg-culosai-dark-brown hover:bg-culosai-dark-brown/90 text-culosai-cream font-norwester text-xl md:text-2xl px-8 md:px-[70px] py-3 md:py-[14px] rounded-[10px] border border-black transition-all w-full sm:w-auto"
-            onClick={() => {
-              // Handle payment processing
-              setShowPaymentModal(false);
-              setSelectedPayment(null);
-              setSelectedPackage(null);
-            }}
-          >
-            Continue
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  const handlePaymentSuccess = async () => {
+    try {
+      const tokenData = await get<any>("/auth/tokens");
+      setTokens(tokenData.tokens);
+    } catch {
+      // ignore
+    }
+    setShowPaymentModal(false);
+    setSelectedPackage(null);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1D1D1D] via-[#1D1D1D] to-[#3E1F24] font-norwester">
@@ -257,7 +198,15 @@ const Index: React.FC = () => {
       </div>
 
       {/* Payment Modal */}
-      {showPaymentModal && <PaymentModal />}
+      {showPaymentModal && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          selectedPackage={selectedPackage}
+          tokenPackages={tokenPackages}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
     </div>
   );
 };

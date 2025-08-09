@@ -196,7 +196,7 @@ export default function AIVideoGeneration() {
       <Navbar user={user} tokens={tokens} onLogout={handleLogout} />
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-28">
         {/* Page Title */}
         <div className="text-center mb-8 md:mb-12">
           <h1 className="text-culosai-cream text-3xl md:text-4xl lg:text-5xl font-norwester">
@@ -327,15 +327,15 @@ export default function AIVideoGeneration() {
             </button>
 
             {aspectRatioExpanded && (
-              <div className="flex flex-wrap gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
                 {aspectRatios.map((ratio) => (
                   <button
                     key={ratio.id}
                     onClick={() => setSelectedAspectRatio(ratio.id)}
-                    className={`px-4 py-2 rounded-xl text-xs md:text-sm font-norwester transition-colors ${
+                    className={`px-2 py-1.5 rounded-lg text-xs md:text-sm font-norwester border transition-colors ${
                       selectedAspectRatio === ratio.id
-                        ? "bg-culosai-dark-brown/35 text-culosai-accent-gold"
-                        : "bg-gray-600/30 text-gray-400 hover:bg-gray-600/50"
+                        ? "bg-[#FCEDBC] text-[#42100B] border-[#42100B]"
+                        : "bg-[#2A2A2A] text-gray-300 border-gray-600/40 hover:border-gray-400"
                     }`}
                   >
                     {ratio.ratio}
@@ -375,7 +375,7 @@ export default function AIVideoGeneration() {
                           <span className="text-gray-400 ml-2">({category.description})</span>
                         )}
                       </h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                         {category.items.map((item) => (
                           <button
                             key={item._id}
@@ -385,29 +385,13 @@ export default function AIVideoGeneration() {
                                 [category.name]: item.value
                               }));
                             }}
-                            className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-norwester transition-colors ${
+                            className={`px-2 py-1.5 rounded-lg text-xs font-norwester border transition-colors ${
                               selectedCategoryItems[category.name] === item.value
-                                ? "bg-culosai-dark-brown/35 text-culosai-accent-gold"
-                                : "bg-gray-600/30 text-gray-400 hover:bg-gray-600/50"
+                                ? "bg-[#FCEDBC] text-[#42100B] border-[#42100B]"
+                                : "bg-[#2A2A2A] text-gray-300 border-gray-600/40 hover:border-gray-400"
                             }`}
                           >
-                            <span>{item.name}</span>
-                            <div className="flex items-center gap-1">
-                              <div
-                                className={`w-px h-4 ${
-                                  selectedCategoryItems[category.name] === item.value
-                                    ? "bg-culosai-accent-gold"
-                                    : "bg-gray-400"
-                                }`}
-                              ></div>
-                              <HelpCircle
-                                className={`w-3 h-3 ${
-                                  selectedCategoryItems[category.name] === item.value
-                                    ? "text-culosai-accent-gold"
-                                    : "text-gray-400"
-                                }`}
-                              />
-                            </div>
+                            <span className="truncate">{item.name}</span>
                           </button>
                         ))}
                       </div>
@@ -419,11 +403,12 @@ export default function AIVideoGeneration() {
           </div>
         )}
 
-        {/* Generate Button */}
-        <div className="text-center">
+        {/* Floating Generate Button */}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
           <button
             onClick={handleGenerate}
-            className="bg-culosai-light-cream text-culosai-brown px-8 md:px-12 py-3 md:py-4 rounded-[25px] text-xl md:text-2xl font-norwester hover:bg-culosai-cream transition-colors disabled:opacity-60"
+            className="px-10 md:px-12 py-3 md:py-4 rounded-[25px] text-xl md:text-2xl font-norwester border border-black"
+            style={{ backgroundColor: '#FCEDBC', color: '#42100B' }}
             disabled={loading || (!selectedImage && !promptText)}
           >
             {loading ? "Generating..." : "AI Generate"}
