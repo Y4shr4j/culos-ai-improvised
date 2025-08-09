@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar";
 import { Link } from "react-router-dom";
-import { get } from "../../src/utils/api";
+import { get, post } from "../../src/utils/api";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { Lock, Unlock, Search, Filter } from "lucide-react";
 import ImageDetailsModal from "../../components/ImageDetailsModal";
@@ -76,7 +76,7 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
   const handleUnlockImage = async (imageId: string) => {
     try {
       setUnlockingImageId(imageId);
-      await get(`/images/unlock/${imageId}`);
+      await post(`/images/unlock/${imageId}`);
       
       // Update the image's unlocked status in the local state
       setImages(prevImages =>
@@ -144,8 +144,11 @@ const AIImageGallery: React.FC<AIImageGalleryProps> = ({ embedded = false }) => 
   }, [token, authUser, authLoading]);
 
   useEffect(() => {
-    fetchImages();
-  }, []);
+    // Ensure we fetch after auth state is resolved so Authorization header is present
+    if (!authLoading) {
+      fetchImages();
+    }
+  }, [authLoading, token]);
 
   if (authLoading) {
     return (

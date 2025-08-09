@@ -10,7 +10,7 @@ import {
   listS3Images,
   downloadImage 
 } from '../controllers/image.controller';
-import { isAuthenticated, isAdmin } from '../middleware/auth';
+import { isAuthenticated, isAdmin, optionalAuth } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -31,8 +31,8 @@ const upload = multer({
 });
 
 // Public routes
-router.get('/', getImages);
-router.get('/:id', getImageById);
+router.get('/', optionalAuth, getImages);
+router.get('/:id', optionalAuth, getImageById);
 router.get('/s3-images', listS3Images);
 router.get('/download/:id', downloadImage);
 

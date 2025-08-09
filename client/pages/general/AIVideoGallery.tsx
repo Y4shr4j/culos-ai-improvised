@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar";
 import { Link } from "react-router-dom";
-import { Lock, Unlock, Play, Download } from "lucide-react";
+import { Lock, Unlock, Play, Download, X } from "lucide-react";
 import { get, post } from "../../src/utils/api";
 import { useAuth } from "../../src/contexts/AuthContext";
 
@@ -32,6 +32,7 @@ const AIVideoGallery: React.FC = () => {
   const [user, setUser] = useState(null);
   const [tokens, setTokens] = useState<number | null>(null);
   const { user: authUser, token, loading: authLoading } = useAuth();
+  const [activeVideo, setActiveVideo] = useState<Video | null>(null);
 
   const handleLogout = async () => {
     try {
@@ -91,9 +92,11 @@ const AIVideoGallery: React.FC = () => {
   }, []);
 
   const handleVideoClick = (video: Video) => {
-    // Handle video click - could open modal or navigate
-    console.log('Video clicked:', video);
+    if (video.isBlurred && !video.isUnlocked) return; // locked content
+    setActiveVideo(video);
   };
+
+  const closePlayer = () => setActiveVideo(null);
 
   if (authLoading) {
     return (
@@ -243,7 +246,7 @@ const AIVideoGallery: React.FC = () => {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {videos.map((video) => (
-                  <div key={video._id} className="relative group overflow-hidden rounded-lg shadow-lg bg-[#171717] cursor-pointer" onClick={() => handleVideoClick(video)}>
+                   <div key={video._id} className="relative group overflow-hidden rounded-lg shadow-lg bg-[#171717] cursor-pointer" onClick={() => handleVideoClick(video)}>
                     <div className="relative aspect-video overflow-hidden">
                       {video.thumbnailUrl ? (
                         <img
@@ -257,13 +260,44 @@ const AIVideoGallery: React.FC = () => {
                           <Play className="w-12 h-12 text-gray-400" />
                         </div>
                       )}
+                      {/* Overlay actions */}
+                      {(!video.isBlurred || video.isUnlocked) && (
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex gap-3">
+                            <button
+                              className="bg-black/70 hover:bg-black/80 text-white p-2 rounded-full"
+                              onClick={(e) => { e.stopPropagation(); handleVideoClick(video); }}
+                              aria-label="Play video"
+                            >
+                              <Play className="w-5 h-5" />
+                            </button>
+                            <a
+                              href={video.url}
+                              download
+                              className="bg-black/70 hover:bg-black/80 text-white p-2 rounded-full"
+                              onClick={(e) => e.stopPropagation()}
+                              aria-label="Download video"
+                            >
+                              <Download className="w-5 h-5" />
+                            </a>
+                          </div>
+                        </div>
+                      )}
                       
                       {video.isBlurred && !video.isUnlocked && (
                         <div className="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center p-4 text-center text-white">
                           <Lock className="w-8 h-8 mb-2" />
                           <p className="font-semibold text-sm">Unlock for {video.unlockPrice} token{video.unlockPrice !== 1 ? 's' : ''}</p>
                           {user ? (
-                            <button className="mt-2 bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-medium py-1 px-3 rounded-full text-xs transition-colors">
+                            <button
+                              className="mt-2 bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-medium py-1 px-3 rounded-full text-xs transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                post(`/videos/${video._id}/unlock`).then(() => {
+                                  setVideos((prev) => prev.map(v => v._id === video._id ? { ...v, isBlurred: false, isUnlocked: true } as any : v));
+                                }).catch((err) => console.error('Unlock video failed:', err));
+                              }}
+                            >
                               Unlock Video
                             </button>
                           ) : (
@@ -311,6 +345,33 @@ const AIVideoGallery: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Video Player Modal */}
+      {activeVideo && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={closePlayer}>
+          <div className="bg-[#171717] rounded-2xl w-full max-w-4xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+              <h3 className="text-culosai-cream font-norwester text-lg truncate">{activeVideo.title || 'Video'}</h3>
+              <button className="text-culosai-cream hover:text-white" onClick={closePlayer} aria-label="Close">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="bg-black">
+              <video src={activeVideo.url} controls autoPlay className="w-full h-auto" />
+            </div>
+            <div className="flex justify-between items-center px-4 py-3 gap-3">
+              <div className="text-xs text-culosai-cream/70">Size: {(activeVideo.size / (1024*1024)).toFixed(1)} MB</div>
+              <a
+                href={activeVideo.url}
+                download
+                className="bg-culosai-accent-gold hover:bg-culosai-accent-gold/80 text-culosai-dark-brown font-norwester px-4 py-2 rounded-lg inline-flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" /> Download
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

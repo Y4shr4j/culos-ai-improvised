@@ -8,7 +8,8 @@ import {
   updateVideo,
   deleteVideo,
   toggleVideoBlur,
-  incrementVideoViews
+  incrementVideoViews,
+  unlockVideo
 } from '../controllers/video.controller';
 
 const router = express.Router();
@@ -38,5 +39,6 @@ router.post('/upload', protect, upload.single('file'), uploadVideo);
 router.put('/:id', protect, updateVideo);
 router.delete('/:id', protect, deleteVideo);
 router.patch('/:id/blur', protect, toggleVideoBlur);
+router.post('/:id/unlock', protect, unlockVideo);
 
 export default router;

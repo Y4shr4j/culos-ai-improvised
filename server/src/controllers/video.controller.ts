@@ -265,3 +265,36 @@ export const incrementVideoViews = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Error updating video views' });
   }
 };
+
+export const unlockVideo = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!req.user) return res.status(401).json({ message: 'Not authenticated' });
+
+    const video = await VideoModel.findById(id);
+    if (!video) return res.status(404).json({ message: 'Video not found' });
+
+    const user = await UserModel.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // For now, treat video unlocks similarly to images by recording in unlockedImages as a generic record
+    // Deduct tokens
+    if (user.tokens < video.unlockPrice) {
+      return res.status(400).json({ message: 'Not enough tokens' });
+    }
+    user.tokens -= video.unlockPrice;
+
+    // Mark as unlocked for this user by storing video ID in a flexible field
+    // Append to unlockedImages with a synthetic imageId equal to video._id for simplicity
+    // If you later add a dedicated unlockedVideos array in the user model, migrate accordingly
+    user.unlockedImages.push({ imageId: video._id as any, unlockedAt: new Date() });
+
+    video.unlockCount += 1;
+    await Promise.all([user.save(), video.save()]);
+
+    res.json({ message: 'Video unlocked', tokensRemaining: user.tokens });
+  } catch (error) {
+    console.error('Unlock video error:', error);
+    res.status(500).json({ message: 'Error unlocking video' });
+  }
+};
