@@ -32,7 +32,8 @@ if (process.env.OAUTH_CALLBACK_URL) {
                       process.env.RAILWAY_PUBLIC_DOMAIN;
   
   if (isProduction) {
-    const productionUrl = `https://culosai-production.up.railway.app/auth/google/callback`;
+    const base = (process.env.SERVER_URL || process.env.VITE_API_BASE_URL || 'https://culosai-production.up.railway.app').replace(/\/$/, '');
+    const productionUrl = `${base}/auth/google/callback`;
     console.log('3. Using production callback URL:', productionUrl);
   } else {
     const serverPort = process.env.PORT || 5000;

@@ -110,9 +110,10 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
                         process.env.HOSTNAME?.includes('railway') ||
                         process.env.HOSTNAME?.includes('up.railway.app');
     
-    // For production, use the Railway URL
+    // For production, prefer SERVER_URL or VITE_API_BASE_URL; fallback to Railway URL
     if (isProduction) {
-      const productionUrl = `https://culosai-production.up.railway.app/auth/google/callback`;
+      const base = (process.env.SERVER_URL || process.env.VITE_API_BASE_URL || 'https://culosai-production.up.railway.app').replace(/\/$/, '');
+      const productionUrl = `${base}/auth/google/callback`;
       console.log('Using production callback URL:', productionUrl);
       return productionUrl;
     }
@@ -188,9 +189,10 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
                         process.env.HOSTNAME?.includes('railway') ||
                         process.env.HOSTNAME?.includes('up.railway.app');
     
-    // For production, use the Railway URL
+    // For production, prefer SERVER_URL or VITE_API_BASE_URL; fallback to Railway URL
     if (isProduction) {
-      const productionUrl = `https://culosai-production.up.railway.app/auth/facebook/callback`;
+      const base = (process.env.SERVER_URL || process.env.VITE_API_BASE_URL || 'https://culosai-production.up.railway.app').replace(/\/$/, '');
+      const productionUrl = `${base}/auth/facebook/callback`;
       console.log('Using production Facebook callback URL:', productionUrl);
       return productionUrl;
     }
