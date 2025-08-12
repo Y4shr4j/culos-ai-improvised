@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPaypalOrder, capturePaypalOrder, createCryptoInvoice, confirmCryptoPayment } from '../controllers/payment.controller';
+import { createPaypalOrder, capturePaypalOrder, createCryptoInvoice, confirmCryptoPayment, cryptoWebhook } from '../controllers/payment.controller';
 import { isAuthenticated } from '../middleware/auth';
 
 const router = express.Router();
@@ -17,5 +17,8 @@ router.post('/paypal/capture-order', isAuthenticated, capturePaypalOrder);
 // Crypto payments
 router.post('/crypto/create-invoice', isAuthenticated, createCryptoInvoice);
 router.post('/crypto/confirm', isAuthenticated, confirmCryptoPayment);
+
+// NOWPayments webhook (no auth required - called by NOWPayments)
+router.post('/crypto/webhook', cryptoWebhook);
 
 export default router; 

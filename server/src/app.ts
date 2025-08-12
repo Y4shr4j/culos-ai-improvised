@@ -161,6 +161,26 @@ app.use('/api/characters', characterRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/videos', videoRoutes);
 
+// Diagnostic endpoint for debugging
+app.get("/api/debug/config", (req: Request, res: Response) => {
+  const config = {
+    nodeEnv: process.env.NODE_ENV,
+    hasStabilityKey: !!process.env.STABILITY_API_KEY,
+    hasAwsAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+    hasAwsSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
+    hasAwsRegion: !!process.env.AWS_REGION,
+    hasAwsBucket: !!process.env.AWS_S3_BUCKET,
+    hasJwtSecret: !!process.env.JWT_SECRET,
+    hasMongoUri: !!process.env.MONGODB_URI,
+    stabilityKeyLength: process.env.STABILITY_API_KEY?.length || 0,
+    awsAccessKeyLength: process.env.AWS_ACCESS_KEY_ID?.length || 0,
+    awsSecretKeyLength: process.env.AWS_SECRET_ACCESS_KEY?.length || 0,
+  };
+  
+  console.log('Debug config:', config);
+  res.json(config);
+});
+
 // JWT generator
 const generateToken = (id: string): string => {
   const jwtSecret = process.env.JWT_SECRET || 'fallback-jwt-secret';
@@ -318,6 +338,28 @@ app.post("/api/generate", authMiddleware, async (req, res) => {
     const { prompt, aspectRatio, category, type, categorySelections } = req.body;
     const user = (req as any).user;
 
+    // Validate required fields
+    if (!prompt) {
+      return res.status(400).json({ message: "Prompt is required" });
+    }
+
+    // Check environment variables
+    const apiKey = process.env.STABILITY_API_KEY;
+    if (!apiKey) {
+      console.error('STABILITY_API_KEY not set');
+      return res.status(500).json({ message: "Stability API key not configured" });
+    }
+
+    const awsAccessKey = process.env.AWS_ACCESS_KEY_ID;
+    const awsSecretKey = process.env.AWS_SECRET_ACCESS_KEY;
+    const awsRegion = process.env.AWS_REGION;
+    const awsBucket = process.env.AWS_S3_BUCKET;
+
+    if (!awsAccessKey || !awsSecretKey || !awsRegion || !awsBucket) {
+      console.error('AWS credentials not properly configured');
+      return res.status(500).json({ message: "AWS S3 configuration incomplete" });
+    }
+
     console.log('Processing image generation request...');
     console.log('Prompt:', prompt);
     console.log('Aspect ratio:', aspectRatio);
@@ -334,13 +376,6 @@ app.post("/api/generate", authMiddleware, async (req, res) => {
     user.tokens -= 1;
     await user.save();
     console.log('Token deducted. New balance:', user.tokens);
-
-    // 3. Call Stability AI API
-    const apiKey = process.env.STABILITY_API_KEY;
-    if (!apiKey) {
-      console.log('Stability API key not set');
-      return res.status(500).json({ message: "Stability API key not set. Please configure STABILITY_API_KEY in your environment variables." });
-    }
 
     console.log('Calling Stability AI API...');
 
@@ -609,38 +644,32 @@ app.use('*', (req: Request, res: Response) => {
   });
 });
 
-// Start server after DB connection
-const PORT = process.env.PORT || 5000;
-
-// Function to start server with retry logic
-const startServer = (retryCount = 0) => {
-  const currentPort = typeof PORT === 'string' ? parseInt(PORT) + retryCount : PORT + retryCount;
-  const server = app.listen(currentPort, () => {
-    console.log(`🚀 Server running on port ${currentPort}`);
-    console.log('📋 Available routes:');
-    console.log('  - /auth/test');
-    console.log('  - /auth/google');
-    console.log('  - /auth/google/callback');
-    console.log('  - /auth/facebook');
-    console.log('  - /auth/facebook/callback');
-    console.log('✅ OAuth is properly configured and ready!');
-  }).on('error', (err: any) => {
-    if (err.code === 'EADDRINUSE') {
-      console.log(`⚠️ Port ${currentPort} is in use. Trying port ${currentPort + 1}...`);
-      if (retryCount < 3) {
-        setTimeout(() => {
-          startServer(retryCount + 1);
-        }, 1000);
-      } else {
-        console.error('❌ Could not find an available port after 3 attempts');
-        process.exit(1);
-      }
-    } else {
-      console.error('❌ Server error:', err);
-      process.exit(1);
-    }
+// Global error handler
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('Global error handler caught:', err);
+  console.error('Error stack:', err.stack);
+  res.status(500).json({ 
+    message: "Internal server error", 
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
-};
+});
 
-// Start the server
-startServer();
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`Database: ${process.env.MONGODB_URI ? 'Configured' : 'Not configured'}`);
+  console.log(`Stability AI: ${process.env.STABILITY_API_KEY ? 'Configured' : 'Not configured'}`);
+  console.log(`AWS S3: ${process.env.AWS_ACCESS_KEY_ID ? 'Configured' : 'Not configured'}`);
+});

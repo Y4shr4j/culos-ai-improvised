@@ -128,7 +128,15 @@ export default function AIImageGeneration() {
     setLoading(true);
     setError(null);
     setGeneratedImage(null);
+    
     try {
+      // Validate input
+      if (!promptText.trim()) {
+        setError("Please enter a prompt to generate an image");
+        setLoading(false);
+        return;
+      }
+
       // Build category context from selected items
       const categoryContext = Object.entries(selectedCategoryItems)
         .map(([categoryName, itemValue]) => `${categoryName}: ${itemValue}`)
@@ -138,6 +146,14 @@ export default function AIImageGeneration() {
         ? `${promptText} ${categoryContext}`.trim()
         : promptText;
 
+      console.log('Sending generation request with:', {
+        prompt: enhancedPrompt,
+        aspectRatio: selectedAspectRatio,
+        category: selectedCategory,
+        type: "image",
+        categorySelections: selectedCategoryItems,
+      });
+
       const response = await api.post("/generate", {
         prompt: enhancedPrompt,
         aspectRatio: selectedAspectRatio,
@@ -145,9 +161,37 @@ export default function AIImageGeneration() {
         type: "image",
         categorySelections: selectedCategoryItems,
       });
+      
+      console.log('Generation response:', response.data);
       setGeneratedImage(response.data.imageUrl);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to generate image");
+      console.error('Generation error:', err);
+      
+      // Provide more specific error messages
+      if (err.response?.status === 400) {
+        if (err.response?.data?.message?.includes('tokens')) {
+          setError("Not enough tokens. Please purchase more tokens to generate images.");
+        } else if (err.response?.data?.message?.includes('Prompt')) {
+          setError("Please enter a valid prompt to generate an image.");
+        } else {
+          setError(err.response?.data?.message || "Invalid request. Please check your input.");
+        }
+      } else if (err.response?.status === 401) {
+        setError("Authentication failed. Please log in again.");
+      } else if (err.response?.status === 500) {
+        const errorMessage = err.response?.data?.message;
+        if (errorMessage?.includes('API key')) {
+          setError("AI service configuration error. Please contact support.");
+        } else if (errorMessage?.includes('AWS')) {
+          setError("Storage service error. Please contact support.");
+        } else if (errorMessage?.includes('rate limit')) {
+          setError("Service is busy. Please try again in a few minutes.");
+        } else {
+          setError(errorMessage || "Server error. Please try again later.");
+        }
+      } else {
+        setError("Network error. Please check your connection and try again.");
+      }
     }
     setLoading(false);
   };

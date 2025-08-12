@@ -116,6 +116,8 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 FACEBOOK_APP_ID=your_facebook_app_id
 FACEBOOK_APP_SECRET=your_facebook_app_secret
 
+
+
 # Payments
 PAYPAL_CLIENT_ID=your_paypal_client_id
 PAYPAL_CLIENT_SECRET=your_paypal_client_secret
@@ -227,3 +229,5 @@ VITE_PAYPAL_CLIENT_ID=your_paypal_client_id
 - **Domain**: $10-15/year
 
 **Total Estimated Cost**: $15-50/month for production deployment 
+
+npx tsx src/app.ts   

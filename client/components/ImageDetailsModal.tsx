@@ -120,23 +120,15 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
       onClick={onClose}
     >
       <motion.div
-        className="bg-[#171717] rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col lg:flex-row shadow-2xl"
+        className="bg-[#1c1c1c] rounded-xl w-full max-w-5xl h-[90vh] overflow-hidden flex flex-col lg:flex-row shadow-2xl"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-culosai-cream hover:bg-black/70 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Image Section */}
-        <div className="w-full lg:w-1/2 h-64 sm:h-80 lg:h-full relative">
+        {/* LEFT IMAGE */}
+        <div className="w-full lg:w-1/2 relative">
           <img
             src={currentImage.url}
             alt={currentImage.title || 'AI Generated Image'}
@@ -144,162 +136,87 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
               currentImage.isBlurred && !currentImage.isUnlocked ? 'blur-md' : ''
             }`}
           />
-          
-          {/* Overlay for locked images */}
-          {currentImage.isBlurred && !currentImage.isUnlocked && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <div className="text-center">
-                <Lock className="w-12 h-12 sm:w-16 sm:h-16 text-culosai-accent-gold mx-auto mb-4" />
-                <p className="text-culosai-cream font-norwester text-lg sm:text-xl">
-                  {currentImage.unlockPrice} tokens to unlock
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Unlocked Badge */}
-          {!currentImage.isBlurred || currentImage.isUnlocked ? (
-            <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-norwester flex items-center gap-2">
-              <Unlock className="w-4 h-4" />
-              Unlocked
-            </div>
-          ) : null}
         </div>
-
-        {/* Content Section */}
-        <div className="w-full lg:w-1/2 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-          {/* Header */}
-          <div className="mb-6">
-            <h2 className="text-culosai-cream font-norwester text-xl sm:text-2xl lg:text-3xl mb-2">
-              {currentImage.title || 'AI Generated Image'}
-            </h2>
-            {currentImage.uploadedBy && (
-              <p className="text-culosai-gold/60 text-sm sm:text-base">
-                By {currentImage.uploadedBy.name}
-              </p>
-            )}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3 mb-6">
+  
+        {/* RIGHT CONTENT */}
+        <div className="w-full lg:w-1/2 flex flex-col p-6 overflow-y-auto">
+          
+          {/* HEADER */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <img
+                src="https://via.placeholder.com/40"
+                alt="Avatar"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+              <h2 className="text-[#F5D7A3] font-bold text-lg">
+                {currentImage.uploadedBy?.name || 'Mina Seo'}
+              </h2>
+            </div>
             <motion.button
               onClick={handleRemix}
-              className="flex items-center gap-2 px-4 py-3 bg-culosai-accent-gold text-culosai-dark-brown font-norwester rounded-lg hover:bg-culosai-accent-gold/80 transition-colors text-sm sm:text-base min-h-[44px]"
+              className="px-5 py-2 bg-[#B5462C] text-white font-semibold rounded-full hover:bg-[#a23e27] transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Remix
+              REMIX
             </motion.button>
-
-            <motion.button
-              onClick={handleDownload}
-              className="flex items-center gap-2 px-4 py-3 bg-culosai-dark-brown text-culosai-cream font-norwester rounded-lg hover:bg-culosai-dark-brown/80 transition-colors text-sm sm:text-base min-h-[44px]"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Download className="w-4 h-4" />
-              Download
-            </motion.button>
-
-            {currentImage.isBlurred && !currentImage.isUnlocked && (
-              <motion.button
-                onClick={handleUnlock}
-                className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white font-norwester rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base min-h-[44px]"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Unlock className="w-4 h-4" />
-                Unlock ({currentImage.unlockPrice} tokens)
-              </motion.button>
-            )}
           </div>
-
-          {/* Prompt Section */}
+  
+          {/* HORIZONTAL LINE */}
+          <div className="border-b border-gray-700 mb-5"></div>
+  
+          {/* PROMPT */}
           {currentImage.prompt && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl">Prompt</h3>
-                <div className="flex items-center gap-2">
-                  <motion.button
-                    onClick={handleCopyPrompt}
-                    className="flex items-center gap-1 text-culosai-accent-gold hover:opacity-80 transition-opacity text-sm"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Copy className="w-4 h-4" />
-                    {promptCopied ? "Copied!" : "Copy"}
-                  </motion.button>
-                  <Languages className="w-5 h-5 text-culosai-accent-gold" />
-                </div>
+            <div className="mb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-[#F5D7A3] text-sm font-medium">Prompts</span>
+                <motion.button
+                  onClick={handleCopyPrompt}
+                  className="flex items-center gap-1 text-[#F5D7A3] text-sm hover:opacity-80"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Copy className="w-4 h-4" />
+                  {promptCopied ? "Copied!" : "Copiar prompts"}
+                </motion.button>
+                <Languages className="w-5 h-5 text-[#F5D7A3] cursor-pointer" />
               </div>
-              <div className="p-4 bg-[#2A2A2A] rounded-lg">
-                <p className="text-culosai-gold/80 text-sm sm:text-base leading-relaxed">
-                  {currentImage.prompt}
-                </p>
+              <div className="bg-[#3a3a3a] text-gray-300 p-3 rounded-lg text-sm">
+                {currentImage.prompt}
               </div>
             </div>
           )}
-
-          {/* Description */}
-          {currentImage.description && (
-            <div className="mb-6">
-              <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl mb-3">Description</h3>
-              <p className="text-culosai-gold/70 text-sm sm:text-base leading-relaxed">
-                {currentImage.description}
-              </p>
-            </div>
-          )}
-
-          {/* Tags */}
+  
+          {/* TAGS */}
           {currentImage.tags && currentImage.tags.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl mb-3">Tags</h3>
-              <div className="flex flex-wrap gap-2">
-                {currentImage.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="bg-culosai-accent-gold/20 text-culosai-accent-gold text-sm px-3 py-1 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+            <div className="flex flex-wrap gap-2 mb-6">
+              {currentImage.tags.map((tag, idx) => (
+                <span
+                  key={idx}
+                  className="bg-[#3b261b] text-[#F5D7A3] text-xs px-3 py-1 rounded-md"
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
           )}
-
-          {/* Category Selections */}
-          {currentImage.categorySelections && Object.keys(currentImage.categorySelections).length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl mb-3">Categories</h3>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(currentImage.categorySelections).map(([key, value]) => (
-                  <span
-                    key={key}
-                    className="bg-culosai-dark-brown/50 text-culosai-cream text-sm px-3 py-1 rounded-full"
-                  >
-                    {key}: {value}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Similar Images */}
-          <div className="mb-6">
-            <h3 className="text-culosai-cream font-norwester text-lg sm:text-xl mb-3">Similar Images</h3>
+  
+          {/* SIMILAR IMAGES */}
+          <div>
+            <h3 className="text-[#F5D7A3] font-semibold text-base mb-3">
+              Similar Images
+            </h3>
             {loadingSimilar ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-culosai-accent-gold"></div>
+              <div className="flex justify-center py-6">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#F5D7A3]"></div>
               </div>
             ) : similarImages.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {similarImages.map((similarImage) => (
+              <div className="grid grid-cols-3 gap-4">
+                {similarImages.slice(0, 3).map((similarImage) => (
                   <div
                     key={similarImage._id}
-                    className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                    className="aspect-[3/4] rounded-lg overflow-hidden cursor-pointer hover:opacity-80"
                     onClick={() => setCurrentImage(similarImage)}
                   >
                     <img
@@ -313,13 +230,17 @@ const ImageDetailsModal: React.FC<ImageDetailsModalProps> = ({
                 ))}
               </div>
             ) : (
-              <p className="text-culosai-gold/60 text-sm sm:text-base">No similar images found</p>
+              <p className="text-gray-500 text-sm">No similar images found</p>
             )}
           </div>
+
+
+  
         </div>
       </motion.div>
     </motion.div>
   );
+  
 };
 
 export default ImageDetailsModal; 
