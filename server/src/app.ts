@@ -517,6 +517,7 @@ app.post(
       let imageBuffer: Buffer | null = null;
       let imageName = "uploaded.png";
       let categoryContext = "";
+      let prompt = "";
 
       if (req.file) {
         imageBuffer = req.file.buffer;
@@ -525,9 +526,12 @@ app.post(
         return res.status(400).json({ message: "No image file provided" });
       }
 
-      // Extract category context from form data
+      // Extract category context and prompt from form data
       if (req.body.categoryContext) {
         categoryContext = req.body.categoryContext;
+      }
+      if (req.body.prompt) {
+        prompt = req.body.prompt;
       }
 
       const apiKey = process.env.STABILITY_API_KEY;
@@ -535,6 +539,18 @@ app.post(
         console.log('Stability API key not set for video generation');
         return res.status(500).json({ message: "Stability API key not set. Please configure STABILITY_API_KEY in your environment variables." });
       }
+
+      // Check AWS S3 configuration
+      const awsAccessKey = process.env.AWS_ACCESS_KEY_ID;
+      const awsSecretKey = process.env.AWS_SECRET_ACCESS_KEY;
+      const awsRegion = process.env.AWS_REGION;
+      const awsBucket = process.env.AWS_S3_BUCKET;
+
+      if (!awsAccessKey || !awsSecretKey || !awsRegion || !awsBucket) {
+        console.error('AWS credentials not properly configured');
+        return res.status(500).json({ message: "AWS S3 configuration incomplete" });
+      }
+
       console.log('Sending request to Stability AI video generation...');
       // Try alternative endpoint for video generation
       let startRes;
@@ -566,7 +582,10 @@ app.post(
           error: "Stability AI video generation endpoint not accessible"
         });
       }
+
+      let videoBuffer: Buffer | null = null;
       let videoUrl = null;
+
       for (let i = 0; i < 60; i++) { // try for up to 60 seconds
         await new Promise((r) => setTimeout(r, 1000));
         const pollRes = await axios.get(
@@ -579,15 +598,17 @@ app.post(
             // New API format - artifacts array
             const artifact = pollRes.data.artifacts[0];
             if (artifact.base64) {
-              videoUrl = `data:video/mp4;base64,${artifact.base64}`;
+              videoBuffer = Buffer.from(artifact.base64, 'base64');
               break;
             }
           } else if (pollRes.data.video_url) {
-            videoUrl = pollRes.data.video_url;
+            // Download video from URL
+            const videoResponse = await axios.get(pollRes.data.video_url, { responseType: 'arraybuffer' });
+            videoBuffer = Buffer.from(videoResponse.data);
             break;
           } else if (pollRes.data.video) {
-            // Return base64 video as a data URL
-            videoUrl = `data:video/mp4;base64,${pollRes.data.video}`;
+            // Return base64 video as buffer
+            videoBuffer = Buffer.from(pollRes.data.video, 'base64');
             break;
           }
         }
@@ -597,12 +618,57 @@ app.post(
             .json({ message: "Video generation failed", error: pollRes.data });
         }
       }
-      if (!videoUrl) {
+
+      if (!videoBuffer) {
         return res
           .status(500)
-          .json({ message: "Failed to generate video: No video URL returned" });
+          .json({ message: "Failed to generate video: No video data returned" });
       }
-      res.json({ videoUrl });
+
+      console.log('Video generated successfully, size:', videoBuffer.length);
+
+      // Upload to S3
+      console.log('Uploading video to S3...');
+      const s3Url = await uploadToS3({
+        originalname: `ai-generated-video-${Date.now()}.mp4`,
+        mimetype: "video/mp4",
+        buffer: videoBuffer,
+        size: videoBuffer.length,
+      }, 'videos');
+
+      console.log('S3 upload successful, URL:', s3Url);
+
+      // Save the generated video with metadata
+      try {
+        const VideoModel = (await import('./models/video')).VideoModel;
+        const video = new VideoModel({
+          url: s3Url,
+          title: `AI Generated Video - ${prompt ? prompt.substring(0, 50) + '...' : 'From Image'}`,
+          description: prompt || 'AI-generated video from uploaded image',
+          prompt: prompt,
+          categorySelections: categoryContext ? { context: categoryContext } : {},
+          category: 'ai-generated',
+          tags: categoryContext ? ['ai-generated', 'video', categoryContext] : ['ai-generated', 'video'],
+          isBlurred: false, // Generated videos are unlocked by default
+          blurIntensity: 0,
+          uploadedBy: user._id,
+          duration: 0, // Could be extracted from video metadata
+          size: videoBuffer.length,
+          mimeType: "video/mp4",
+          unlockPrice: 0, // Generated videos are free
+          unlockCount: 0,
+          isActive: true // Make sure AI-generated videos are active
+        });
+
+        await video.save();
+        console.log('Video saved to database with ID:', video._id);
+      } catch (saveError) {
+        console.error('Error saving generated video:', saveError);
+        // Don't fail the request if saving metadata fails
+      }
+
+      console.log('Video generation completed successfully');
+      res.json({ videoUrl: s3Url });
     } catch (err) {
       const errorData = (err as any)?.response?.data || err;
       console.error('Video generation error:', errorData);

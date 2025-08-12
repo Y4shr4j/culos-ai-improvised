@@ -5,6 +5,8 @@ export interface IVideo extends Document {
   thumbnailUrl?: string;
   title?: string;
   description?: string;
+  prompt?: string; // For AI-generated videos
+  categorySelections?: Record<string, any>; // For AI-generated videos
   isBlurred: boolean;
   blurIntensity: number; // 0-100, where 0 is not blurred, 100 is fully blurred
   category?: string;
@@ -39,6 +41,13 @@ const videoSchema: Schema = new Schema({
   description: { 
     type: String,
     trim: true 
+  },
+  prompt: { 
+    type: String,
+    trim: true 
+  },
+  categorySelections: { 
+    type: Schema.Types.Mixed 
   },
   isBlurred: { 
     type: Boolean, 

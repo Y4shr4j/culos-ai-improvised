@@ -161,6 +161,11 @@ export default function AIVideoGeneration() {
       const formData = new FormData();
       formData.append("image", imageFile, imageFile.name);
       
+      // Add prompt to form data
+      if (promptText) {
+        formData.append("prompt", promptText);
+      }
+      
       // Add category context to form data
       const categoryContext = Object.entries(selectedCategoryItems)
         .map(([categoryName, itemValue]) => `${categoryName}: ${itemValue}`)

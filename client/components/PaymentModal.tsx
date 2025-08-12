@@ -99,8 +99,25 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-[#F4E4BC] rounded-[20px] p-8 w-full max-w-lg relative">
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+  <div
+    className="bg-[#F4E4BC] rounded-[20px] p-8 w-full max-w-lg relative max-h-[90vh] overflow-y-auto"
+    style={{
+      scrollbarWidth: "none", /* Firefox */
+      msOverflowStyle: "none" /* IE and Edge */
+    }}
+  >
+    <style>
+      {`
+        /* Hide scrollbar for Chrome, Safari, and Opera */
+        div::-webkit-scrollbar {
+          display: none;
+        }
+      `}
+    </style>
+
+    {/* Your modal content here */}
+
         {/* Price tag */}
         <div className="absolute top-4 right-6 text-[#813521] font-norwester text-lg font-bold">
           ${selectedPkg?.price || '0.00'}
